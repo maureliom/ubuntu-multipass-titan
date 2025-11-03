@@ -1,0 +1,1447 @@
+#cloud-config
+#
+# ===============================================================================================================================================
+#                          UBUNTU WORKSTATION ENVIRONMENT SETUP FOR DEVELOPMENT 
+# ===============================================================================================================================================
+#  Author:          Marco Aurelio Micheletto
+#
+#  Created:         October 2025
+#  Version:         1.0
+#
+#  License:
+#      This configuration is distributed under the MIT License.
+#
+#      Permission is hereby granted, free of charge, to any person obtaining a copy
+#      of this software and associated documentation files (the "Software"), to deal
+#      in the Software without restriction, including without limitation the rights
+#      to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#      copies of the Software, and to permit persons to whom the Software is
+#      furnished to do so, subject to the following conditions:
+#
+#      The above copyright notice and this permission notice shall be included in all
+#      copies or substantial portions of the Software.
+#
+#      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#      OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#      SOFTWARE.
+#
+#                      Copyright (c) 2025 Marco Aurelio Micheletto.
+#
+#
+#  Reference Documentation:
+#    - Multipass documentation:
+#        https://multipass.run/docs
+#    - cloud-init reference:
+#        https://cloudinit.readthedocs.io/en/latest/
+#    - autoinstall reference:
+#        https://canonical-subiquity.readthedocs-hosted.com/en/latest/intro-to-autoinstall.html 
+#
+#  Description:
+#    This cloud-init configuration automatically provisions a Ubuntu development 
+#    environment for use with:
+#      - Eclipse IDE configured with TITAN Designer plugin
+#      - Visual Studio Code 
+#      - Maven
+#      - Java 11 and 21 (OpendJDK and Temurin )
+#      - Python
+#      - TTCN-3
+#      - XRDP dual connection (RDC and HYPER-V enhanced mode connections)
+#      - Visual Code
+#      - TITAN Core
+#      - TITAN Designer
+#      - GNOME
+#      - XFCE4
+#      - Configured to Ubuntu 24.04
+#
+#    Can be integrated to any provisioning tool that accepts cloud-ini file:
+#      - Multipass
+#      - Packer / Qemu
+# ===============================================================================================================================================
+#                          !!!! UBUNTU DROPPED LTS FOR VAGRANT IMAGES !!!!
+#              https://documentation.ubuntu.com/public-images/public-images-explanation/vagrant/
+# ===============================================================================================================================================
+#
+# -----------------------------------------------------------------------------------------------------------------------------------------------
+#                          BENCHMARK
+#
+#--------------------------------------------------------------------------------------
+#| Feature / Laptop                 |          (i5-1135G7, 32 GB DDR4-2667)           | 
+#| :------------------------------- | :-----------------------------------------------| 
+#| CPU cores / threads usable by VM | 2 vCPUs max (≈ 50 % CPU load for host)          | 
+#| CPU load under full VM           | 90–100 % → throttling likely                    | 
+#| RAM allocated for VM             | 8–12 GB                                         | 
+#| RAM bandwidth required           | DDR4-2667 (~42 GB/s max) → may saturate         | 
+#| NVMe throughput demand           | PCIe 3.0 x4 → ~1.5–2 GB/s seq, 0.5–1 GB/s rand  | 
+#| GPU load (for GUI acceleration)  | Iris Xe 80 EUs → ok for XFCE / light GNOME      | 
+#| Disk I/O bottleneck              | Likely under heavy builds                       | 
+#| Thermal throttling risk          | Medium-high (>90 °C under sustained load)       | 
+#| Multipass backend performance    | `Hyper-V` (best option)                         | 
+#| Practical max VM spec (zero-lag) | 2 vCPUs, 8 GB RAM, XFCE, pagefile 8–12 GB       | 
+#--------------------------------------------------------------------------------------
+#| Expected VM responsiveness       | Fair-poor; freezes possible under build load    | 
+#--------------------------------------------------------------------------------------
+#
+#
+#| Feature / Laptop                 |      (i7-1320P, 32 GB LPDDR5-5200, UHD Graphics)            |
+#| :------------------------------- |:----------------------------------------------------------- |
+#| CPU cores / threads usable by VM | 4–6 vCPUs (≈ 33–50 % CPU load for host)                     |
+#| CPU load under full VM           | 55–70 % → smooth operation under load                       |
+#| RAM allocated for VM             | 16–24 GB                                                    |
+#| RAM bandwidth required           | LPDDR5-5200 (~83 GB/s total dual channel) → ample           |
+#| NVMe throughput demand           | PCIe 4.0 x4 → ~5–6 GB/s seq, 2–3 GB/s rand                  |
+#| GPU load (for GUI acceleration)  | Intel UHD (64 EUs) → usable but limited for GNOME animations|
+#| Disk I/O bottleneck              | Minimal                                                     |
+#| Thermal throttling risk          |Low (hybrid design + efficient cooling)                      |
+#| Multipass backend performance    |`Hyper-V` (recommended)                                      |
+#| Practical max VM spec (zero-lag) | 4 vCPUs, 16 GB RAM, GNOME/XFCE, pagefile 16 GB              |
+#--------------------------------------------------------------------------------------------------
+#| Expected VM responsiveness       | Very good; stable GUI and compile times near native         |
+#--------------------------------------------------------------------------------------------------
+#
+#
+#| Feature / Laptop                 |  (i7-12800H, 32 GB DDR5-5200, Iris Xe + GeForce MX550)  |
+#| :------------------------------- |:--------------------------------------------------------|
+#| CPU cores / threads usable by VM | 4–6 vCPUs (≈ 40–60 % CPU load for host)                 |
+#| CPU load under full VM           | 60–80 % → minimal throttling with GPU offload           |
+#| RAM allocated for VM             | 16–24 GB                                                |
+#| RAM bandwidth required           | DDR5-5200 (~83 GB/s total dual channel) → ample         |
+#| NVMe throughput demand           | PCIe 4.0 x4 → ~5–6 GB/s seq, 2–3 GB/s rand              |
+#| GPU load (for GUI acceleration)  | Iris Xe + MX550 → excellent for GNOME and 3D tasks      |
+#| Disk I/O bottleneck              | Minimal                                                 |
+#| Thermal throttling risk          | Medium; may throttle after long compiles (80–85 °C)     |
+#| Multipass backend performance    | `Hyper-V` (recommended)                                 |
+#| Practical max VM spec (zero-lag) | 4–6 vCPUs, 16 GB RAM, GNOME, pagefile 16 GB             |
+#----------------------------------------------------------------------------------------------
+#| Expected VM responsiveness       | Excellent; smooth response under full load and GPU tasks|
+#----------------------------------------------------------------------------------------------
+
+# ===============================================================================================================================================
+#                          ADJUST VM CAPABILITIES TO WHAT IS DOABLE BASED ON HOST SPECS 
+# ===============================================================================================================================================
+#  >  multipass get --keys
+#       local.dev-workstation.cpus
+#       local.dev-workstation.memory
+#
+#  Overview:
+#
+#  This guide explains how to:
+#     1. Configure Hyper-V virtual switches with static IPs
+#     2. Launch and provision a Multipass VM using cloud-init
+#     3. Enable Enhanced Session mode for GUI
+#     4. Manage SSH fingerprints (known_hosts)
+#     5. Use tools to transfer files between host and guest
+#
+# ===============================================================================================================================================
+#                          PREPARATION
+# ===============================================================================================================================================
+#  !!!!    For credentials setup and adjustments follow the tags {USER_INPUT}   !!!!
+# ===============================================================================================================================================
+#
+#   Configure credentials in places marked with {USER_INPUT}
+#       keep standard user multipass password multipass
+#
+# ===============================================================================================================================================
+#                          HYPER-V DEPLOY
+# ===============================================================================================================================================
+#   Configure host static IPs (Hyper-V)
+#   Define two vSwitches:
+#     - "multipass_external" (External)
+#     - "multipass_internal" (Internal)
+#
+#   In PowerShell (Run as Administrator):
+#     > The gateway for the static IP
+#     > New-NetIPAddress -IPAddress 192.168.138.1 -PrefixLength 24 -InterfaceAlias "vEthernet (multipass_internal)"
+#
+#   Verify:
+#     > Get-NetIPAddress -InterfaceAlias "vEthernet (multipass_internal)"
+#     > Get-NetNat
+#
+#   Launch Multipass with static networking and cloud-init:
+#   (run as administrator from PowerShell in clout-init-multipass.yaml folder)
+#
+#   > multipass launch 24.04 `
+#         --name dev-workstation `
+#         --memory 12G `
+#         --disk 20G `
+#         --network name="multipass_external" `
+#         --network name="multipass_internal",mode=manual,mac="52:54:00:4b:ab:cd" `
+#         --cloud-init cloud-init-mutipass.yaml
+#
+#   > in Hyper-mode multipass have reserved network adapters (eth0, eth1, eth2) for static ip
+#     dev-workstation network adapter needs to be higher than reserved ones (here was set eth3)
+#
+#   Track cloud-init progress:
+#     From Hyper-V console: wait for login prompt and watch boot messages  tail -f /var/log/cloud-init-output.log
+#     From SSH multipass@192.168.138.102 (When X11 kicks in):
+#       $ tail -f /var/log/cloud-init-output.log
+#
+#   Wait until the message "Cloud-init ... finished" appears.
+#
+#   Enable enhanced mode (Set-VM -VMName "dev-workstation" -EnhancedSessionTransportType HvSocket)
+#   Then reboot and test remote desktop connection (Hyper-v Enhanced Mode or RDC).
+#
+#   RDC: 192.168.138.102:3390
+#
+#   Verify and manage VM lifecycle:
+#     > multipass list
+#     > multipass stop dev-workstation --force
+#     > multipass start dev-workstation
+#     > multipass shell dev-workstation
+#
+# ===============================================================================================================================================
+#                          VIRTUALBOX DEPLOY
+# ===============================================================================================================================================
+#
+#   Launch Multipass only, network setup is after provisioning:
+#   (run as administrator from PowerShell in clout-init-multipass.yaml folder)
+#
+#   > multipass launch 24.04 `
+#         --name dev-workstation `
+#         --memory 12G `
+#         --disk 20G `
+#         --cloud-init cloud-init-mutipass.yaml
+#
+#   > in VBox-mode multipass have reserved network adapters (enp0s1, enp0s3) and also is VBox who define the name
+#     of network adapters, if VBox set a different network adapter name from enp0s8,
+#     adjust it in /etc/netplan/100-vbox-multipass.yaml
+#
+#   Track cloud-init progress:
+#     Wait multipass launch times out.
+#     Then multipass shell dev-workstation 
+#     watch boot messages  tail -f /var/log/cloud-init-output.log
+#
+#   Wait until the message "Cloud-init ... finished" appears.
+#   Leave ssh, go back to host console
+#   Then multipass stop dev-workstation --force
+#   Then multipass start dev-workstation
+#   Wait the start times out
+#   Confirm it´s up with multipass shell dev-workstation
+#   Configure static ip on host side
+#
+#   Configure only internal gateway
+#     - VBoxManage hostonlyif ipconfig "VirtualBox Host-Only Ethernet Adapter #2" --ip 192.168.138.1 --netmask 255.255.255.0
+#
+#   Add dev-workstation instance in VirtualBox UI
+#      - C:\ProgramData\Multipass\data\virtualbox\vault\instances\dev-workstation
+#
+#   Attach internal gateway
+#      - VBoxManage modifyvm dev-workstation --nic2 hostonly --hostonlyadapter2 "VirtualBox Host-Only Ethernet Adapter #2"
+#
+#   Verify:
+#     > VBoxManage showvminfo dev-workstation --machinereadable
+#     > multipass info dev-workstation
+#
+#   Test remote desktop connection (RDC).
+#   VirtualBox: Just RDC. Because VBox and Hyper-V are in different layers of the OS.
+#      > Hyper-V owns dev-workstation and manage virtual ethernet, multipass is the proxy.
+#      > VBox just manage virtual ethernet, multipass manage dev-workstation in headless.
+#
+#   RDC: 192.168.138.102:3390
+#
+#   Verify and manage VM lifecycle:
+#     > multipass list
+#     > multipass stop dev-workstation --force
+#     > multipass start dev-workstation
+#     > multipass shell dev-workstation
+#
+# ===============================================================================================================================================
+#                          CONNECTIVITY & FILE TRANSFER
+# ===============================================================================================================================================
+#
+#   SSH access:
+#   If instance was recreated, clear old fingerprint in host:
+#     > del "%USERPROFILE%\.ssh\known_hosts"
+#
+#   Update hosts mapping (optional):
+#     Edit C:\Windows\System32\drivers\etc\hosts.ics
+#     Example:
+#       192.168.138.102   dev-workstation
+#
+#   File Transfer Tools:
+#     - **Multipass mount**:
+#         > multipass mount "C:\Users\YourUser\Projects" dev-workstation:/home/multipass/Shared
+#     - **WinSCP**:
+#         Protocol: SFTP
+#         Host: 192.168.138.102
+#         Username: multipass
+#         Key/File: (same SSH private key as authorized_keys)
+#
+# ===============================================================================================================================================
+#                          CLEANUP & MAINTENANCE
+# ===============================================================================================================================================
+#   Removing instances:
+#     > multipass stop dev-workstation --force
+#     > multipass delete dev-workstation
+#     > multipass purge
+#     (Then remove stale host entries and fingerprints)
+#
+#   VBox useful comands and procedures to wipe out stale instances:
+#      multipass stop dev-workstation --force
+#      net stop multipass
+#      manual deletion of "C:\ProgramData\Multipass\data\virtualbox\vault\instances\dev-workstation\
+#      net start multipass 
+#      VBoxManage unregistervm uuid --delete
+#      VBoxManage unregistervm "dev-workstation" --delete 
+#      VBoxManage list runningvms 
+#      multipass list  
+#      VBoxManage controlvm "dev-workstation" poweroff 
+#      VBoxManage showvminfo dev-workstation --machinereadable 
+#      VBoxManage list natnets 
+#      VBoxManage list vms --long | findstr /i "UUID" 
+#      VBoxManage list hostonlyifs
+#      VBoxManage startvm dev-workstation --type headless
+#      VBoxManage.exe showhdinfo "C:\ProgramData\Multipass\data\virtualbox\vault\instances\dev-workstation\vdi-name.vdi"    
+#      Uninstall multipass to clear cached data
+#
+#      instance that get stuck in unknown state:
+#         > stop multipass daemon and all VBox services
+#         > manual deletion of dev-workstation folder
+#         > reboot host
+#         > provision again with multipass launch
+#
+# ===============================================================================================================================================
+#                          GNOME BLACK SCREEN (due to XRDP login idle)              
+# ===============================================================================================================================================
+#      Black screen due to XRDP Login idle 
+#        > sudo pkill -u multipass gnome-session-binary
+#        > sudo pkill -u multipass Xorg
+#        > sudo rm -rf /tmp/.X10-lock /tmp/.X11-unix/X10
+#
+# ===============================================================================================================================================
+#                          PROVISIONED FILES              
+#  !!!!    For credentials setup and adjustments follow the tags {USER_INPUT}   !!!!
+# ===============================================================================================================================================
+#
+#  User Home Files (/home/multipass/)
+#
+#  staged files for provision
+#       /home/multipass/org.eclipse.titan.designer.prefs
+#       /home/multipass/compile.launch
+#       /home/multipass/initialize.launch
+#       /home/multipass/run.launch
+#
+#   X setup  
+#       /home/multipass/.netrc
+#       /home/multipass/.bashrc
+#       /home/multipass/.xsession
+#       /home/multipass/.config/systemd/user/setup-desktop.service
+#       /home/multipass/.config/autostart/desktop-tweaks.sh
+#
+#   Maven
+#       /home/multipass/.m2/settings.xml
+#
+#   Python
+#       /home/multipass/requirements.txt
+#
+#   TITAN engine
+#       /home/multipass/Makefile.personal
+#
+#   Desktop files
+#       /home/multipass/Desktop/eclipse.desktop
+#       /home/multipass/Desktop/code.desktop
+#
+#   Networking
+#       /etc/netplan/99-hyperv-multipass.yaml
+#       /etc/netplan/100-vbox-multipass.yaml
+#
+#   Profile environment
+#       /etc/profile.d/java.sh
+#       /etc/profile.d/maven.sh
+#       /etc/profile.d/eclipse.sh
+#       /etc/profile.d/titan-env.sh
+#
+#   XRDP configuration
+#       /etc/xrdp/xrdp-rdc.ini
+#       /etc/xrdp/xrdp.ini
+#       /etc/xrdp/startwm.sh
+#       /etc/xrdp/sesman.ini
+#
+#   Systemd services
+#       /etc/systemd/system/xrdp-rdc.service
+#       /usr/lib/systemd/system/xrdp.service
+#
+#   GDM / Display Manager
+#       /etc/gdm3/custom.conf
+#
+#   Boot configuration
+#       /etc/default/grub
+#
+# ===============================================================================================================================================
+#                          ENABLE THIS IF cloud-init will boot an Ubuntu image using cloud-ini user-data | meta-data setup
+#               I.Ex.: "https://cloud-images.ubuntu.com/${var.ubuntu_version}/current/${var.ubuntu_version}-server-cloudimg-amd64.img" 
+#                                                     MULTIPASS LAUNCH DON´T NEED IT
+# ===============================================================================================================================================
+#password: ubuntu
+#ssh_pwauth: true
+#chpasswd:
+#  expire: false
+#packages:
+#  - qemu-guest-agent
+#  - net-tools
+#late-commands:
+#  - curtin in-target --target=/target -- systemctl enable ssh  
+# ===============================================================================================================================================
+#                          ENABLE THIS IF cloud-init will boot an Ubuntu ISO using cloud-ini user-data | meta-data setup
+#                                  I.Ex.: "https://releases.ubuntu.com/24.04/ubuntu-24.04.3-live-server-amd64.iso" 
+#                                                    MULTIPASS LAUNCH DON´T NEED IT
+# ===============================================================================================================================================
+#autoinstall:
+#  version: 1
+#  identity:
+#    hostname: ubuntu-autoinstall
+#    username: ubuntu
+#                                 !!!THIS IS A PUBLIC HASH FOR UBUNTU DEFAULT PASSWORD!!!
+#    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"  # "ubuntu"
+#  ssh:
+#    install-server: true
+#    allow-pw: true
+#    authorized-keys: 
+#  storage:
+#    layout:
+#      name: direct
+#  locale: en_US
+#  keyboard:
+#    layout: us
+#  packages:
+#    - qemu-guest-agent
+#    - curl
+#    - net-tools
+#  user-data:
+# ===============================================================================================================================================
+#                          MULTIPASS LAUNCH (Keep identation)
+#                          ISO BOOT (Packer / Qemu)(Requires everything below to be idented under autoinstall "  user-data:")
+#                          IMG BOOT (Packer / Qemu)(Keep identation)
+# ===============================================================================================================================================
+bootcmd:
+# ===============================================================================================================================================
+#                                                  {USER_INPUT} 
+#                          Enable the line below if this workstation will compile titan engine
+#                                  https://gitlab.eclipse.org/eclipse/titan/titan.core
+#                             https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins
+# ===============================================================================================================================================
+#  - [ bash, -c, "if [ ! -f /var/lib/cloud/firstboot_done ]; then add-apt-repository universe -y && touch /var/lib/cloud/firstboot_done && apt-get update -y; fi" ]
+users:
+  - name: multipass
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    groups: [sudo,users,admin]
+    lock_passwd: false
+    plain_text_passwd: multipass
+# ===============================================================================================================================================
+#                          Public key for ssh              
+# ===============================================================================================================================================
+    ssh_authorized_keys:
+#          {USER_INPUT} I.Ex.: - ssh-ed25519...
+        - ssh-ed25519 ...
+
+ssh_pwauth: true
+disable_root: false
+# ===============================================================================================================================================
+#                          Locale and Timezone
+# ===============================================================================================================================================
+#          {USER_INPUT} setup locale and regional settings
+keyboard:
+  layout: pt_br
+  variant: ''
+timezone: Europe/Lisbon
+locale: en_US.UTF-8
+packages:
+# ===============================================================================================================================================
+#                          Core system tools 
+# ===============================================================================================================================================
+  - gpg 
+  - ca-certificates
+  - apt-transport-https
+  - gnupg
+  - build-essential
+  - locales
+  - console-setup
+  - software-properties-common
+# =================================================================================================================================================
+#                          Network base  
+# =================================================================================================================================================
+  - net-tools            
+  - iproute2             
+  - dnsutils             
+  - traceroute
+  - nmap
+  - curl
+  - wget
+  - openssh-server
+  - openssh-client
+  - vsftpd
+  - network-manager
+  - network-manager-gnome
+  - ufw
+  - iputils-ping
+  - tcpdump
+  - ethtool
+  - bridge-utils
+  - resolvconf
+# ===================================================================================================================================================
+#                          XFCE4  
+# ===================================================================================================================================================
+  - xfce4
+  - xfce4-goodies
+# ===================================================================================================================================================
+#                          GNOME 
+# ===================================================================================================================================================
+  - ubuntu-gnome-desktop
+  - gnome-shell
+  - gnome-terminal
+  - gnome-session-flashback
+  - gnome-tweaks  
+  - gnome-session 
+  - yaru-theme-gnome-shell
+# ====================================================================================================================================================
+#                          X11 / XRDP
+# ====================================================================================================================================================
+  - gdm3
+  - xorgxrdp 
+  - dbus-x11
+  - freerdp2-x11  
+  - xrdp  
+  - linux-tools-virtual 
+  - hwinfo    
+# ====================================================================================================================================================
+#                          Developer tools 
+# ====================================================================================================================================================
+  - git
+  - zip
+  - unzip
+  - dos2unix
+  - python3
+  - python3.12-venv
+  - python3-pip
+  - openjdk-11-jdk
+  - openjdk-21-jdk
+  - nodejs
+  - gedit
+  - imagemagick 
+# ====================================================================================================================================================
+#                          Internet Tools & Browsers 
+# ====================================================================================================================================================
+  - wget
+  - filezilla
+  - remmina
+# ====================================================================================================================================================
+#                          TITAN ENGINE ONLY
+#      These requires bootcmd parameter to be enablad (add-apt-repository universe)
+# ====================================================================================================================================================
+#  - g++
+#  - expect
+#  - libssl-dev
+#  - libxml2-dev
+#  - libncurses5-dev
+#  - flex
+#  - bison
+#  - libedit2
+#  - libedit-dev
+#  - xutils-dev
+#  - ant
+#  - xsltproc
+#  - ant-junit
+#  - libxml2-utils
+#  - libpcap0.8-dev
+#  - make  
+# ====================================================================================================================================================
+#                          If the workstation will be under trusted network (SSL i.ex.: Zscaler)
+# ====================================================================================================================================================
+#          {USER_INPUT} I.Ex.: 
+#ca_certs:
+#  remove_defaults: false
+#  trusted:  
+#  - 
+#   -----BEGIN CERTIFICATE-----
+#   -----END CERTIFICATE-----
+#  - |
+#    -----BEGIN CERTIFICATE-----
+#   -----END CERTIFICATE-----
+write_files:
+# ====================================================================================================================================================
+#                          github/gitlab credentials (PASSWORD = personal token)
+# ====================================================================================================================================================
+#          {USER_INPUT} I.Ex.: this is a .netrc file
+#=====================================================================================================================================================
+#      #   !!! PASSWORD IS PERSONAL TOKEN, not github.com password!!!
+#=====================================================================================================================================================
+#  - path: /home/multipass/.netrc
+#    owner: multipass:multipass
+#    permissions: '0600'
+#    defer: true 
+#    content: |
+#      machine 
+#      login 
+#      password 
+  - path: /home/multipass/.xsession
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |
+      #!/bin/bash
+      export XDG_SESSION_TYPE=x11
+      export GDMSESSION=ubuntu
+      export DESKTOP_SESSION=ubuntu
+      export GNOME_SHELL_SESSION_MODE=ubuntu
+      export XDG_CURRENT_DESKTOP=ubuntu:GNOME    
+  - path: /home/multipass/.bashrc
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |
+      # Source all /etc/profile.d scripts for interactive non-login shells
+      for file in /etc/profile.d/*.sh; do
+          [ -r "$file" ] && . "$file"
+      done
+      # Load system-wide bashrc (for colors, aliases, completion)
+      if [ -f /etc/bash.bashrc ]; then
+          . /etc/bash.bashrc
+      fi
+      # Enable colors for ls
+      if [ -x /usr/bin/dircolors ]; then
+          eval "$(dircolors -b)"
+      fi
+      /home/multipass/.config/autostart/desktop-tweaks.sh
+
+      # Ensure locale and keyboard from system defaults
+      if [ -f /etc/default/locale ]; then
+          . /etc/default/locale
+          export LANG LANGUAGE LC_ALL
+      fi
+      if [ -f /etc/default/keyboard ]; then
+          . /etc/default/keyboard
+          setxkbmap "$XKBLAYOUT" "$XKBVARIANT" 2>/dev/null || true
+      fi
+
+      alias ls='ls --color=auto'
+      # Only for interactive shells
+      #if [[ $- == *i* ]]; then
+      #    # Set a nice colored prompt
+      #    PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+      #fi
+      # Only for interactive shells
+      if [[ $- == *i* ]]; then
+          # check if terminal supports color
+          if tput setaf 1 &> /dev/null; then
+              color_prompt=yes
+          else
+              color_prompt=
+          fi
+
+          if [ "$color_prompt" = yes ]; then
+              PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+          else
+              PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+          fi
+      fi      
+  - path: /etc/netplan/99-hyperv-multipass.yaml
+    owner: root:root
+    permissions: '0644'
+    content: |
+      network:
+        version: 2
+        ethernets:
+          eth3:
+            match:
+              macaddress: 52:54:00:4b:ab:cd
+            set-name: eth3
+            dhcp4: false
+            addresses:
+              - 192.168.138.102/24
+            routes:
+              - to: 0.0.0.0/0
+                via: 192.168.138.1
+            nameservers:
+              addresses: [8.8.8.8, 1.1.1.1]     
+  - path: /etc/netplan/100-vbox-multipass.yaml
+    owner: root:root
+    permissions: '0644'
+    content: |
+      network:
+        version: 2
+        ethernets:
+          enp0s8:
+            match:
+              macaddress: 52:54:00:4b:ab:cd
+            set-name: enp0s8
+            dhcp4: false
+            addresses:
+              - 192.168.138.102/24
+            routes:
+              - to: 0.0.0.0/0
+                via: 192.168.138.1
+            nameservers:
+              addresses: [8.8.8.8, 1.1.1.1]            
+# ====================================================================================================================================================
+#                          JAVA VERSION
+# ====================================================================================================================================================
+#          {USER_INPUT} I.Ex.:  enable java version
+# ====================================================================================================================================================
+  - path: /etc/profile.d/java.sh
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+        # OpenJDK 11
+        #export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+        #export PATH=$JAVA_HOME/bin:$PATH
+        # OpenJDK 21
+        #export JAVA_HOME=/usr/lib/jvm/java-21-temurin-amd64
+        #export PATH=$JAVA_HOME/bin:$PATH
+        # Temurin
+        export JAVA_HOME_11=/usr/lib/jvm/temurin-11-jdk-amd64
+        export JAVA_HOME_21=/usr/lib/jvm/temurin-21-jdk-amd64
+        export PATH=$JAVA_HOME_11/bin:$PATH   
+  - path: /etc/profile.d/maven.sh
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+        export MVN_HOME=/opt/apache-maven-3.9.11
+        export PATH=$MVN_HOME/bin:$PATH
+# ====================================================================================================================================================
+#                          MAVEN SETTINGS
+# ====================================================================================================================================================
+#          {USER_INPUT} I.Ex.:    
+#         ADD YOUR MAVEN CREDENTIALS
+#            <username></username>
+#            <password></password>
+# ====================================================================================================================================================
+  - path: /home/multipass/.m2/settings.xml
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |
+      <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                            http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+        <activeProfiles>
+          <activeProfile></activeProfile>
+        </activeProfiles>
+        <profiles>
+          <profile>
+            <id></id>
+            <repositories>
+              <repository>
+                <id></id>
+                <url></url>
+              </repository>
+              <repository>
+                <id></id>
+                <url></url>
+                <snapshots>
+                  <enabled></enabled>
+                </snapshots>
+              </repository>
+            </repositories>
+          </profile>
+        </profiles>
+        <servers>
+          <server>
+            <id></id>
+            <username></username>
+            <password></password>
+          </server>
+        </servers>
+      </settings>
+  - path: /etc/xrdp/xrdp-rdc.ini
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |         
+        [Globals]
+        ini_version=1
+        fork=true
+        port=3390
+        use_vsock=false
+        tcp_nodelay=true
+        tcp_keepalive=true
+        security_layer=rdp
+        crypt_level=high
+        certificate=/etc/xrdp/cert.pem
+        key_file=/etc/xrdp/key.pem
+        ssl_protocols=TLSv1.2, TLSv1.3
+        autorun=
+        allow_channels=true
+        allow_multimon=true
+        bitmap_cache=true
+        bitmap_compression=false
+        bulk_compression=true
+        max_bpp=32
+        new_cursors=true
+        use_fastpath=both
+        # ----- COLORS -----
+        # Remove all bright colors; make everything blend with the background
+        ls_top_window_bg_color=77216F
+        ls_top_window_title_color=77216F
+        ls_top_window_shadow_color=77216F  # same purple as your background
+        ls_top_window_height=0
+        ls_title=Ubuntu 24.04
+
+        ls_bg_color=77216F              # uniform color
+        ls_shadow_color=77216F          # prevents shadow contrast
+
+        # ----- LAYOUT -----
+        ls_width=104
+        ls_height=59
+        ls_background_image=/usr/share/xrdp/warty-final-ubuntu.bmp
+
+        # ----- LOGO -----
+        # disabled (commented out)
+        ls_logo_filename=/usr/share/xrdp/transparent.bmp
+        ls_logo_x_pos=0
+        ls_logo_y_pos=10
+
+        # ----- LABELS AND INPUTS -----
+        # hide user and password fields by moving them offscreen
+        ls_label_x_pos=-9999
+        ls_label_width=0
+        ls_input_x_pos=-9999
+        ls_input_width=0
+        ls_input_y_pos=-9999
+
+        # ----- BUTTONS -----
+        # show only OK button
+        ls_btn_ok_x_pos=2
+        ls_btn_ok_y_pos=22
+        ls_btn_ok_width=100
+        ls_btn_ok_height=35
+
+        # hide cancel button completely
+        ls_btn_cancel_x_pos=-9999
+        ls_btn_cancel_y_pos=-9999
+        ls_btn_cancel_width=0
+        ls_btn_cancel_height=0
+        [Logging]
+        LogFile=xrdp.log
+        LogLevel=INFO
+        EnableSyslog=true
+        [LoggingPerLogger]
+        [Channels]
+        rdpdr=true
+        rdpsnd=true
+        drdynvc=true
+        cliprdr=true
+        rail=true
+        xrdpvr=true
+        tcutils=true
+        [Xorg]
+        name=Xorg
+        lib=libxup.so
+        username=multipass
+        password=multipass
+        ip=127.0.0.1
+        port=-1
+        code=20
+        [Xvnc]
+        name=Xvnc
+        lib=libvnc.so
+        username=ask
+        password=ask
+        ip=127.0.0.1
+        port=-1
+        [vnc-any]
+        name=vnc-any
+        lib=libvnc.so
+        ip=ask
+        port=ask5900
+        username=na
+        password=ask
+        [neutrinordp-any]
+        name=neutrinordp-any
+        lib=libxrdpneutrinordp.so
+        ip=ask
+        port=ask3389
+        username=ask
+        password=ask    
+  - path: /etc/xrdp/xrdp.ini
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |           
+        [Globals]
+        ini_version=1
+        fork=true
+        port=vsock://-1:3389
+        use_vsock=false
+        tcp_nodelay=true
+        tcp_keepalive=true
+        security_layer=rdp
+        crypt_level=high
+        certificate=/etc/xrdp/cert.pem
+        key_file=/etc/xrdp/key.pem
+        ssl_protocols=TLSv1.2, TLSv1.3
+        autorun=
+        allow_channels=true
+        allow_multimon=true
+        bitmap_cache=true
+        bitmap_compression=false
+        bulk_compression=true
+        max_bpp=32
+        new_cursors=true
+        use_fastpath=both
+        # ----- COLORS -----
+        # Remove all bright colors; make everything blend with the background
+        ls_top_window_bg_color=77216F
+        ls_top_window_title_color=77216F
+        ls_top_window_shadow_color=77216F  # same purple as your background
+        ls_top_window_height=0
+        ls_title=Ubuntu 24.04
+
+        ls_bg_color=77216F              # uniform color
+        ls_shadow_color=77216F          # prevents shadow contrast
+
+        # ----- LAYOUT -----
+        ls_width=104
+        ls_height=59
+        ls_background_image=/usr/share/xrdp/warty-final-ubuntu.bmp
+
+        # ----- LOGO -----
+        # disabled (commented out)
+        ls_logo_filename=/usr/share/xrdp/transparent.bmp
+        ls_logo_x_pos=0
+        ls_logo_y_pos=10
+
+        # ----- LABELS AND INPUTS -----
+        # hide user and password fields by moving them offscreen
+        ls_label_x_pos=-9999
+        ls_label_width=0
+        ls_input_x_pos=-9999
+        ls_input_width=0
+        ls_input_y_pos=-9999
+
+        # ----- BUTTONS -----
+        # show only OK button
+        ls_btn_ok_x_pos=2
+        ls_btn_ok_y_pos=22
+        ls_btn_ok_width=100
+        ls_btn_ok_height=35
+
+        # hide cancel button completely
+        ls_btn_cancel_x_pos=-9999
+        ls_btn_cancel_y_pos=-9999
+        ls_btn_cancel_width=0
+        ls_btn_cancel_height=0
+        [Logging]
+        LogFile=xrdp.log
+        LogLevel=INFO
+        EnableSyslog=true
+        [LoggingPerLogger]
+        [Channels]
+        rdpdr=true
+        rdpsnd=true
+        drdynvc=true
+        cliprdr=true
+        rail=true
+        xrdpvr=true
+        tcutils=true
+        [Xorg]
+        name=Xorg
+        lib=libxup.so
+        username=multipass
+        password=multipass
+        ip=127.0.0.1
+        port=-1
+        code=20
+        [Xvnc]
+        name=Xvnc
+        lib=libvnc.so
+        username=ask
+        password=ask
+        ip=127.0.0.1
+        port=-1
+        [vnc-any]
+        name=vnc-any
+        lib=libvnc.so
+        ip=ask
+        port=ask5900
+        username=na
+        password=ask
+        [neutrinordp-any]
+        name=neutrinordp-any
+        lib=libxrdpneutrinordp.so
+        ip=ask
+        port=ask3389
+        username=ask
+        password=ask    
+  - path: /etc/systemd/system/xrdp-rdc.service
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |       
+        [Unit]
+        Description=XRDP RDC Server
+        After=network.target
+        [Service]
+        Type=simple
+        ExecStart=/usr/sbin/xrdp -nodaemon -c /etc/xrdp/xrdp-rdc.ini
+        RuntimeDirectory=xrdp-rdc
+        RuntimeDirectoryMode=0755
+        Restart=on-failure
+        [Install]
+        WantedBy=multi-user.target 
+  - path: /usr/lib/systemd/system/xrdp.service
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |       
+        [Unit]
+        Description=xrdp daemon
+        Documentation=man:xrdp(8) man:xrdp.ini(5)
+        #Requires=xrdp-sesman.service
+        #After=network.target xrdp-sesman.service
+        #After=xrdp.service gdm.service xrdp-sesman.service network.target
+        #Requires=xrdp.service gdm.service network.target xrdp-sesman.service
+        After=network.target gdm.service xrdp-sesman.service
+        Requires=network.target gdm.service xrdp-sesman.service        
+        [Service]
+        Type=forking
+        #Type=oneshot
+        Type=Simple
+        PIDFile=/run/xrdp/xrdp.pid
+        RuntimeDirectory=xrdp
+        RuntimeDirectoryMode=0755
+        EnvironmentFile=-/etc/sysconfig/xrdp
+        EnvironmentFile=-/etc/default/xrdp
+        User=xrdp
+        Group=xrdp
+        PermissionsStartOnly=true
+        ExecStartPre=/bin/sh /usr/share/xrdp/socksetup
+        #ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS
+        "ExecStart=/bin/sleep 5 /usr/sbin/xrdp $XRDP_OPTIONS
+        ExecStartPre=/bin/sleep 5
+        ExecStart=/usr/sbin/xrdp $XRDP_OPTIONS        
+        ExecStop=/usr/sbin/xrdp $XRDP_OPTIONS --kill
+        [Install]
+        #WantedBy=multi-user.target
+        WantedBy=graphical.target
+# ====================================================================================================================================================
+#                           CHANGE SESSION XFCE4 / GNOME
+#                       !!!! OR X11 OR XRDP (NOT BOTH) !!!!
+#                           (see /etc/gdm3/custom.conf)
+#          {USER_INPUT} I.Ex.: IN THE SECTION BELOW YOU CAN CHANGE XFCE4 / GNOME EVEN AFTER PROVISIONING       
+# ====================================================================================================================================================
+  - path: /etc/xrdp/startwm.sh
+    owner: root:root
+    permissions: '0777'
+    defer: true
+    content: |           
+      #!/bin/sh
+      # xrdp X session start script (c) 2015, 2017, 2021 mirabilos
+      # published under The MirOS Licence
+      # Rely on /etc/pam.d/xrdp-sesman using pam_env to load both
+      # /etc/environment and /etc/default/locale to initialise the
+      # locale and the user environment properly.
+      #
+      export GNOME_SHELL_SESSION_MODE=ubuntu
+      export XDG_CURRENT_DESKTOP=ubuntu:GNOME
+      export XDG_SESSION_TYPE=x11
+      #export GDK_BACKEND=x11
+      unset DBUS_SESSION_BUS_ADDRESS
+      # start a dbus session
+      eval $(dbus-launch --sh-syntax --exit-with-session)
+      /home/multipass/.config/autostart/desktop-tweaks.sh
+      xhost +SI:localuser:root 
+      setxkbmap pt
+      . /etc/default/locale
+      export LANG LC_ALL LANGUAGE
+      # ==============================================================================================================================================
+      #                        LAUNCH XFCE4
+      #startxfce4
+      #===============================================================================================================================================
+      #                        LAUNCH GNOME
+      exec gnome-session --session=ubuntu
+      # ==============================================================================================================================================
+      if test -r /etc/profile; then
+          . /etc/profile
+      fi
+      if test -r ~/.profile; then
+          . ~/.profile
+      fi
+      # start GNOME (path may vary)
+      #if [ -x /usr/libexec/gnome-session-binary ]; then
+      #  exec /usr/libexec/gnome-session-binary --systemd --session=ubuntu
+      #elif [ -x /usr/lib/gnome-session/gnome-session-binary ]; then
+      #  exec /usr/lib/gnome-session/gnome-session-binary --systemd --session=ubuntu
+      #else
+      #  exec gnome-session
+      #fi
+      #exec gnome-session
+      #test -x /etc/X11/Xsession && exec /etc/X11/Xsession
+      #exec /bin/sh /etc/X11/Xsession
+      #
+      #Black screen due to XRDP Login idle 
+      #sudo pkill -u multipass gnome-session-binary
+      #sudo pkill -u multipass Xorg
+      #sudo rm -rf /tmp/.X10-lock /tmp/.X11-unix/X10
+  - path: /etc/xrdp/sesman.ini
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: | 
+        [Globals]
+        ListenAddress=127.0.0.1
+        ListenPort=3350
+        EnableUserWindowManager=true
+        UserWindowManager=startwm.sh
+        DefaultWindowManager=startwm.sh
+        ReconnectScript=reconnectwm.sh
+        [Security]
+        AllowRootLogin=true
+        MaxLoginRetry=4
+        TerminalServerUsers=tsusers
+        TerminalServerAdmins=tsadmins
+        AlwaysGroupCheck=false
+        RestrictOutboundClipboard=none
+        RestrictInboundClipboard=none
+        [Sessions]
+        X11DisplayOffset=10
+        MaxSessions=50
+        KillDisconnected=true
+        DisconnectedTimeLimit=0
+        IdleTimeLimit=0
+        Policy=Default
+        [Logging]
+        LogFile=xrdp-sesman.log
+        LogLevel=INFO
+        EnableSyslog=true
+        [LoggingPerLogger]
+        [Xorg]
+        param=/usr/lib/xorg/Xorg
+        param=-config
+        param=xrdp/xorg.conf
+        param=-noreset
+        param=-nolisten
+        param=tcp
+        param=-logfile
+        param=.xorgxrdp.%s.log
+        [Xvnc]
+        param=Xvnc
+        param=-bs
+        param=-nolisten
+        param=tcp
+        param=-localhost
+        param=-dpi
+        param=96
+        [Chansrv]
+        FuseMountName=thinclient_drives
+        FileUmask=077
+        [ChansrvLogging]
+        LogLevel=INFO
+        EnableSyslog=true
+        [ChansrvLoggingPerLogger]
+        [SessionVariables]
+        PULSE_SCRIPT=/etc/xrdp/pulse/default.pa
+# ====================================================================================================================================================
+#                                                        GDM3
+#                                         WaylandEnable channels to XRDP OR X11
+#====================================================================================================================================================
+#                                                       XRDP mode
+#                                           (which means Hyper-V enhanced mode):
+#             /etc/xrdp/startwm.sh needs to explicitly start startxfce4 or gnome and don´t start X11
+#====================================================================================================================================================
+#                                                       X11 mode 
+#                                          (which means Hyper-V VMBus mode): 
+#                                 /etc/xrdp/startwm.sh needs to explicitly start X11
+# ====================================================================================================================================================
+  - path: /etc/gdm3/custom.conf
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |         
+        [daemon]
+        WaylandEnable=false
+        DefaultSession=gnome-xorg.desktop
+        DisableUserList=true
+        [security]
+        [xdmcp]
+        [chooser]
+        [debug]    
+  - path: /etc/default/grub
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |         
+        GRUB_DEFAULT=0
+        GRUB_TIMEOUT_STYLE=hidden
+        GRUB_TIMEOUT=0
+        GRUB_DISTRIBUTOR=`( . /etc/os-release; echo ${NAME:-Ubuntu} ) 2>/dev/null || echo Ubuntu`
+        GRUB_CMDLINE_LINUX_DEFAULT="quiet splash video=hyperv_fb:1920x1080 hv_vmbus hv_utils hv_balloon hv_storvsc hv_blkvsc hv_netvsc i8042.nomux i8042.nokbd i8042.reset"
+        GRUB_CMDLINE_LINUX=""    
+  - path: /etc/profile.d/eclipse.sh
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+        export ECLIPSE_HOME=/opt/eclipse
+        export PATH=$ECLIPSE_HOME:$PATH   
+  - path: /usr/share/applications/eclipse.desktop
+    owner: root:root
+    permissions: '0644'
+    defer: true    
+    content:  |   
+        [Desktop Entry]
+        Type=Application
+        Name=Eclipse IDE
+        Comment=Eclipse IDE for Java and more
+        Exec=/opt/eclipse/eclipse
+        Icon=/opt/eclipse/icon.xpm
+        Terminal=false
+        Categories=Development;IDE;
+        StartupNotify=true
+  - path: /home/multipass/Desktop/eclipse.desktop
+    owner: multipass:multipass
+    permissions: '0755'
+    defer: true    
+    content: |
+        [Desktop Entry]
+        Type=Application
+        Name=Eclipse IDE
+        Comment=Eclipse IDE for Java and more
+        Exec=/opt/eclipse/eclipse
+        Icon=/opt/eclipse/icon.xpm
+        Terminal=false
+        Categories=Development;IDE;
+        StartupNotify=true     
+  - path: /home/multipass/Desktop/code.desktop
+    owner: multipass:multipass
+    permissions: '0755'
+    defer: true    
+    content: |
+      [Desktop Entry]
+      Name=Visual Studio Code
+      Comment=Code Editing. Redefined.
+      Exec=/snap/bin/code %F
+      Icon=/snap/code/current/meta/gui/vscode.png
+      Terminal=false
+      Type=Application
+      Categories=Development;IDE;
+      StartupNotify=true     
+  - path: /home/multipass/.config/systemd/user/setup-desktop.service
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |
+      [Unit]
+      Description=Set desktop shortcut trust
+      After=graphical-session.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/gio set /home/multipass/Desktop/eclipse.desktop metadata::trusted yes
+
+      [Install]
+      WantedBy=default.target           
+  - path: /home/multipass/.config/autostart/desktop-tweaks.sh
+    permissions: '0777'
+    defer: true
+    owner: multipass:multipass
+    content: |
+      #!/bin/bash
+      # Safely apply desktop tweaks
+
+      # GNOME settings
+      gsettings set org.gnome.desktop.session idle-delay 0 || true
+      gsettings set org.gnome.desktop.lockdown disable-lock-screen true || true
+      gsettings set org.gnome.desktop.screensaver lock-enabled false || true
+      gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing' || true
+      gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-battery-type 'nothing' || true
+
+      # Suppress nm-applet notifications (if running)
+      gsettings set org.gnome.nm-applet suppress-wireless-networks-available true || true
+      gsettings set org.gnome.nm-applet disable-connected-notifications true || true
+      gsettings set org.gnome.nm-applet disable-disconnected-notifications true || true
+      dconf write /org/gnome/nm-applet/suppress-wireless-networks-available true
+      dconf write /org/gnome/nm-applet/disable-connected-notifications true
+      dconf write /org/gnome/nm-applet/disable-disconnected-notifications true      
+
+      # Optional tweaks, only if schema exists
+      if gsettings list-schemas | grep -q org.gnome.shell.extensions.dash-to-panel; then
+          gsettings set org.gnome.shell.extensions.dash-to-panel show-suspend-button false || true
+      fi
+
+      # If key exists (deprecated in modern GNOME)
+      if gsettings list-keys org.gnome.shell 2>/dev/null | grep -q disable-log-out; then
+          gsettings set org.gnome.shell disable-log-out true || true
+      fi
+
+      # Trust desktop icons (if they exist)
+      [ -f ~/Desktop/eclipse.desktop ] && gio set ~/Desktop/eclipse.desktop metadata::trusted true || true
+      [ -f ~/Desktop/code.desktop ] && gio set ~/Desktop/code.desktop metadata::trusted true || true
+
+      # Turn off screen blanking via X
+      xset s off
+      #xset -dpms
+      xset s noblank
+      sudo update-desktop-database
+# ====================================================================================================================================================
+#                          TITAN ENGINE FLAGS FOR COMPILATION
+#  https://gitlab.eclipse.org/eclipse/titan/titan.core/-/blob/master/README.linux?ref_type=heads   
+# ====================================================================================================================================================
+  - path: /home/multipass/Makefile.personal
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |
+      TTCN3_DIR := /opt/titan.core/Install
+      OPENSSL_DIR := /usr
+      JDKDIR := $JAVA_HOME
+      XMLDIR := /usr
+      GEN_PDF := no      
+      OLD_LIBEDIT := yes
+      ##--  Java/C++  --##
+      JNI := no
+      #COMPILERFLAGS += -Wall -Wlogical-op -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+      ##--  Raspberry Pi  --##
+      #COMPILERFLAGS := -Wall -fsigned-char
+      ##--  clang compiler ver. 3.8  --##
+      #CXX := clang++-3.8
+      #CC := clang-3.8
+      ##--  Alpine  --##
+      #ALPINE_LINUX := yes       
+      ###TTCN3_DIR := /home/multipass/titan.core/Install
+      ###OPENSSL_DIR := /usr
+      ###JDKDIR := $JAVA_HOME
+      ###XMLDIR := /usr
+      ###JNI := yes
+      ###GEN_PDF := no
+      ###COMPILERFLAGS += -Wall -Wlogical-op -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
+      ###OLD_LIBEDIT := yes
+  - path: /etc/profile.d/titan-env.sh
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |
+      export TTCN3_DIR=/opt/titan.core/Install
+      export PATH=$TTCN3_DIR/bin:$PATH
+      export LD_LIBRARY_PATH=$TTCN3_DIR/lib:$LD_LIBRARY_PATH
+  - path: /home/multipass/org.eclipse.titan.designer.prefs
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |      
+        #eclipse.preferences.version=1
+        org.eclipse.titan.designer.checkForLowMemory=false
+        org.eclipse.titan.designer.enableDocumentCommentOnTheFlyCheck=true
+        org.eclipse.titan.designer.enableOOPExtension=true
+        org.eclipse.titan.designer.enableRealtimeExtension=true
+        org.eclipse.titan.designer.useIncrementalParsing=true
+runcmd:
+# ====================================================================================================================================================
+#                          NETWORK
+# ====================================================================================================================================================
+  - [ sh, -c, "netplan apply" ]
+# ====================================================================================================================================================
+#                          X11 / XRDP
+# ====================================================================================================================================================
+  - [ sh, -c, "chmod +x /etc/xrdp/startwm.sh" ]
+  - [ sh, -c, "touch /home/multipass/.Xauthority" ]  
+  - [ sh, -c, "chown multipass:multipass /home/multipass/.Xauthority" ]
+  - [ sh, -c, "chmod +x /home/multipass/.Xauthority" ]  
+  - [ sh, -c, "chown root:root /etc/systemd/system/xrdp-rdc.service" ]
+  - [ sh, -c, "chmod 644 /etc/systemd/system/xrdp-rdc.service" ]
+  - [ sh, -c, "rm -f /etc/xrdp/key.pem /etc/xrdp/cert.pem" ]
+  - [ sh, -c, "openssl genrsa -out /etc/xrdp/key.pem 2048" ]
+  - [ sh, -c, "openssl req -x509 -new -nodes -key /etc/xrdp/key.pem -sha256 -days 3650 -out /etc/xrdp/cert.pem -subj '/C=US/ST=None/L=None/O=XRDP/CN=localhost'" ]
+  - [ sh, -c, "chown xrdp:xrdp /etc/xrdp/key.pem /etc/xrdp/cert.pem" ]
+  - [ sh, -c, "chmod 600 /etc/xrdp/key.pem /etc/xrdp/cert.pem" ]
+  - [ sh, -c, "systemctl disable lightdm" ]      
+  - [ sh, -c, "systemctl enable gdm3" ]    
+  - [ sh, -c, "systemctl enable xrdp-rdc.service" ]    
+  - [ sh, -c, "systemctl enable xrdp.service" ]  
+  - [ sh, -c, "systemctl daemon-reexec" ]
+  - [ sh, -c, "systemctl daemon-reload" ]
+  - [ sh, -c, "systemctl start gdm3 xrdp xrdp-rdc xrdp-sesman" ]
+  - [ sh, -c, "systemctl set-default graphical.target" ]      
+  - [ sh, -c, "xhost +SI:localuser:root" ]
+  - [ sh, -c, "convert /usr/share/backgrounds/warty-final-ubuntu.png -resize 1920x1080! -gravity center -extent 1920x1080 -type TrueColor -depth 24 /usr/share/xrdp/warty-final-ubuntu.bmp" ]                  
+  - [ sh, -c, "convert -size 1x1 xc:none -define bmp:format=bmp3 /usr/share/xrdp/transparent.bmp" ]            
+# ====================================================================================================================================================
+#                          ECLIPSE / TITAN DESIGNER
+# ====================================================================================================================================================
+  - [ sh, -c, "sudo chown -R multipass:multipass /home/multipass" ]  
+  - [ sh, -c, 'wget -4 -O /home/multipass/eclipse.tar.gz "https://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2025-09/R/eclipse-jee-2025-09-R-linux-gtk-x86_64.tar.gz"' ]
+  - [ sh, -c, 'wget -4 -O /home/multipass/TITAN.zip "https://mirror.dotsrc.org/mirrors/pub/eclipse/titan/TITAN_Designer_and_Executor_plugin-11.1.0.zip"' ]
+  - [ sh, -c, "sudo tar -xf /home/multipass/eclipse.tar.gz -C /opt/" ]
+  - [ sh, -c, "sudo chown -R multipass:multipass /opt/eclipse" ]
+  - [ sh, -c, "sudo ln -s /opt/eclipse/eclipse /usr/local/bin/eclipse" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'mkdir -p /opt/eclipse/dropins/titan'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'unzip -o /home/multipass/TITAN.zip -d /opt/eclipse/dropins/titan'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'sudo chmod +x /home/multipass/Desktop/eclipse.desktop'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'chown multipass:multipass /home/multipass/Desktop/eclipse.desktop'" ]  
+  - [ sh, -c, "sudo -u multipass bash -c 'mkdir -p /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'mkdir -p /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.debug.core/.launches'" ]  
+  - [ sh, -c, "sudo -u multipass bash -c 'cp /home/multipass/*.launch /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.debug.core/.launches'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'cp /home/multipass/org.eclipse.titan.designer.prefs /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings'" ]  
+  - [ sh, -c, "mkdir /opt/eclipse-backup" ]   
+  - [ sh, -c, "chown multipass:multipass /opt/eclipse-backup" ]    
+  - [ sh, -c, "sudo mv /home/multipass/eclipse.tar.gz /opt/eclipse-backup" ] 
+  - [ sh, -c, "sudo mv /home/multipass/TITAN.zip /opt/eclipse-backup" ]  
+  - [ sh, -c, "sudo mv /home/multipass/*.launch /opt/eclipse-backup" ]  
+  - [ sh, -c, "sudo mv /home/multipass/org.eclipse.titan.designer.prefs /opt/eclipse-backup" ]    
+  - [ sh, -c, "sudo -u multipass bash -c 'eclipse -nosplash -data /home/multipass/eclipse-workspace -initialize'" ]      
+# ====================================================================================================================================================
+#                          FIREFOX
+# ====================================================================================================================================================
+  - [ sh, -c, 'echo "deb http://ppa.launchpad.net/mozillateam/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/mozillateam-ppa.list' ]
+  - [ sh, -c, "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0x0ab215679c571d1c8325275b9bdb3d89ce49ec21" ]
+  - [ sh, -c, "apt update" ]
+  - [ sh, -c, "apt install -y firefox-esr" ]
+# ====================================================================================================================================================
+#                          CHROME
+# ====================================================================================================================================================
+  - [ sh, -c, "mkdir -p /etc/apt/keyrings" ]
+  - [ sh, -c, "curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg" ]
+  - [ sh, -c, 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list' ]
+  - [ sh, -c, "apt update" ]
+  - [ sh, -c, "apt install -y google-chrome-stable" ]
+# ====================================================================================================================================================
+#                          JAVA
+# ====================================================================================================================================================
+#  - [ sh, -c, "/etc/profile.d/java.sh" ]  
+  - [ sh, -c, "wget -4 -qO- https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg" ]
+  - [ sh, -c, 'echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/adoptium.list' ]
+  - [ sh, -c, "apt-get update" ]
+  - [ sh, -c, "apt-get install -y temurin-11-jdk temurin-21-jdk" ]
+  - [ sh, -c, 'wget -4 -O /home/multipass/maven.tar.gz "https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz"' ]
+  - [ sh, -c, "tar -xf /home/multipass/maven.tar.gz -C /opt/" ]
+  - [ sh, -c, "chown -R multipass:multipass /opt/apache-maven-3.9.11" ]  
+  - [ sh, -c, "sudo rm -f /home/multipass/maven.tar.gz" ]
+# ====================================================================================================================================================
+#                          VISUAL CODE
+# ====================================================================================================================================================
+  - [ sh, -c, "sudo snap install code --classic"]
+# ====================================================================================================================================================
+#                          FASTFETCH
+# ====================================================================================================================================================
+  - [ sh, -c, 'wget -4 -O /home/multipass/fastfetch-linux-amd64.deb "https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb"' ]
+  - [ sh, -c, "apt-get install -y /home/multipass/fastfetch-linux-amd64.deb" ]
+  - [ sh, -c, "rm -f /home/multipass/fastfetch-linux-amd64.deb"]  
+# ====================================================================================================================================================
+#                          BUILD TITAN FROM SOURCE  
+#           TITAN 11.1.0 is not configured to compile with most recent Kernel
+# ====================================================================================================================================================
+  - [ sh, -c, "git clone https://gitlab.eclipse.org/eclipse/titan/titan.core.git /opt/titan.core" ]
+  - [ sh, -c, "chown -R multipass:multipass /opt/titan.core" ]  
+  - [ sh, -c, "sudo -u multipass bash -c 'mv /home/multipass/Makefile.personal /opt/titan.core/Makefile.personal'"]    
+  - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && git fetch && git checkout 11.1.0 && git pull'" ]
+  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make -j$(nproc)'" ]
+  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make install'" ]
+  #- [ sh, -c, "/etc/profile.d/titan-env.sh" ]  
+# ====================================================================================================================================================
+#                          BUILD TITAN DESIGNER FROM SOURCE 
+#   https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins/-/blob/master/README?ref_type=heads
+# ====================================================================================================================================================
+  - [ sh, -c, "git clone https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins /opt/titan.EclipsePlug-ins" ]
+  - [ sh, -c, "chown -R multipass:multipass /opt/titan.EclipsePlug-ins" ]    
+  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && git fetch && git checkout 11.1.0 && git pull'" ]
+  #- [ sh, -c, "sudo -u multipass bash -c 'mv /home/multipass/Makefile.personal /opt/titan.core/Makefile.personal'"]  
+  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make -j$(nproc)'" ]
+  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make install'" ]
+  #- [ sh, -c, "/etc/profile.d/titan-env.sh" ]

@@ -99,25 +99,25 @@
 #| Multipass backend performance    |`Hyper-V` (recommended)                                      |
 #| Practical max VM spec (zero-lag) | 4 vCPUs, 16 GB RAM, GNOME/XFCE, pagefile 16 GB              |
 #--------------------------------------------------------------------------------------------------
-#| Expected VM responsiveness       | Very good; stable GUI and compile times near native         |
+#| Expected VM responsiveness       | Excellent for real-time responsiveness and low-latency tasks|        |
 #--------------------------------------------------------------------------------------------------
 #
 #
-#| Feature / Laptop                 |  (i7-12800H, 32 GB DDR5-5200, Iris Xe + GeForce MX550)  |
-#| :------------------------------- |:--------------------------------------------------------|
-#| CPU cores / threads usable by VM | 4–6 vCPUs (≈ 40–60 % CPU load for host)                 |
-#| CPU load under full VM           | 60–80 % → minimal throttling with GPU offload           |
-#| RAM allocated for VM             | 16–24 GB                                                |
-#| RAM bandwidth required           | DDR5-5200 (~83 GB/s total dual channel) → ample         |
-#| NVMe throughput demand           | PCIe 4.0 x4 → ~5–6 GB/s seq, 2–3 GB/s rand              |
-#| GPU load (for GUI acceleration)  | Iris Xe + MX550 → excellent for GNOME and 3D tasks      |
-#| Disk I/O bottleneck              | Minimal                                                 |
-#| Thermal throttling risk          | Medium; may throttle after long compiles (80–85 °C)     |
-#| Multipass backend performance    | `Hyper-V` (recommended)                                 |
-#| Practical max VM spec (zero-lag) | 4–6 vCPUs, 16 GB RAM, GNOME, pagefile 16 GB             |
-#----------------------------------------------------------------------------------------------
-#| Expected VM responsiveness       | Excellent; smooth response under full load and GPU tasks|
-#----------------------------------------------------------------------------------------------
+#| Feature / Laptop                 |  (i7-12800H, 32 GB DDR5-5200, Iris Xe + GeForce MX550)     |
+#| :------------------------------- |:-----------------------------------------------------------|
+#| CPU cores / threads usable by VM | 4–6 vCPUs (≈ 40–60 % CPU load for host)                    |
+#| CPU load under full VM           | 60–80 % → minimal throttling with GPU offload              |
+#| RAM allocated for VM             | 16–24 GB                                                   |
+#| RAM bandwidth required           | DDR5-5200 (~83 GB/s total dual channel) → ample            |
+#| NVMe throughput demand           | PCIe 4.0 x4 → ~5–6 GB/s seq, 2–3 GB/s rand                 |
+#| GPU load (for GUI acceleration)  | Iris Xe + MX550 → excellent for GNOME and 3D tasks         |
+#| Disk I/O bottleneck              | Minimal                                                    |
+#| Thermal throttling risk          | Medium; may throttle after long compiles (80–85 °C)        |
+#| Multipass backend performance    | `Hyper-V` (recommended)                                    |
+#| Practical max VM spec (zero-lag) | 4–6 vCPUs, 16 GB RAM, GNOME, pagefile 16 GB                |
+#------------------------------------------------------------------------------------------------|
+#| Expected VM responsiveness       | Excellent for sustained throughput and multi-VM development|
+#------------------------------------------------------------------------------------------------|
 
 # ===============================================================================================================================================
 #                          ADJUST VM CAPABILITIES TO WHAT IS DOABLE BASED ON HOST SPECS 
@@ -353,6 +353,7 @@
 #       /etc/profile.d/maven.sh
 #       /etc/profile.d/eclipse.sh
 #       /etc/profile.d/titan-env.sh
+#       /etc/profile.d/titan-designer-env.sh
 #
 #   XRDP configuration
 #       /etc/xrdp/xrdp-rdc.ini
@@ -423,7 +424,7 @@ bootcmd:
 #                                  https://gitlab.eclipse.org/eclipse/titan/titan.core
 #                             https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins
 # ===============================================================================================================================================
-#  - [ bash, -c, "if [ ! -f /var/lib/cloud/firstboot_done ]; then add-apt-repository universe -y && touch /var/lib/cloud/firstboot_done && apt-get update -y; fi" ]
+  - [ bash, -c, "if [ ! -f /var/lib/cloud/firstboot_done ]; then add-apt-repository universe -y && touch /var/lib/cloud/firstboot_done && apt-get update -y; fi" ]
 users:
   - name: multipass
     sudo: ALL=(ALL) NOPASSWD:ALL
@@ -532,22 +533,26 @@ packages:
 #                          TITAN ENGINE ONLY
 #      These requires bootcmd parameter to be enablad (add-apt-repository universe)
 # ====================================================================================================================================================
-#  - g++
-#  - expect
-#  - libssl-dev
-#  - libxml2-dev
-#  - libncurses5-dev
-#  - flex
-#  - bison
-#  - libedit2
-#  - libedit-dev
-#  - xutils-dev
-#  - ant
-#  - xsltproc
-#  - ant-junit
-#  - libxml2-utils
-#  - libpcap0.8-dev
-#  - make  
+  - g++
+  - clang
+  - expect
+  - libreadline-dev
+  - libssl-dev
+  - libxml2-dev
+  - libncurses5-dev
+  - libxml2-utils
+  - libpcap0.8-dev
+  - ncurses-dev
+  - flex
+  - bison
+  - libedit2
+  - libedit-dev
+  - xutils-dev
+  - ant
+  - xsltproc
+  - ant-junit
+  - make  
+  - build-essential  
 # ====================================================================================================================================================
 #                          If the workstation will be under trusted network (SSL i.ex.: Zscaler)
 # ====================================================================================================================================================
@@ -1209,6 +1214,34 @@ write_files:
         Terminal=false
         Categories=Development;IDE;
         StartupNotify=true     
+  - path: /usr/share/applications/eclipse-committers.desktop
+    owner: root:root
+    permissions: '0644'
+    defer: true    
+    content:  |   
+        [Desktop Entry]
+        Type=Application
+        Name=Eclipse Committers IDE
+        Comment=Eclipse CommittersIDE for Java and more
+        Exec=/opt/eclipse-committers/eclipse
+        Icon=/opt/eclipse-committers/icon.xpm
+        Terminal=false
+        Categories=Development;IDE;
+        StartupNotify=true
+  - path: /home/multipass/Desktop/eclipse-committers.desktop
+    owner: multipass:multipass
+    permissions: '0755'
+    defer: true    
+    content: |
+        [Desktop Entry]
+        Type=Application
+        Name=Eclipse Committers IDE
+        Comment=Eclipse Committers IDE for Java and more
+        Exec=/opt/eclipse-committers/eclipse
+        Icon=/opt/eclipse-committers/icon.xpm
+        Terminal=false
+        Categories=Development;IDE;
+        StartupNotify=true        
   - path: /home/multipass/Desktop/code.desktop
     owner: multipass:multipass
     permissions: '0755'
@@ -1273,6 +1306,7 @@ write_files:
 
       # Trust desktop icons (if they exist)
       [ -f ~/Desktop/eclipse.desktop ] && gio set ~/Desktop/eclipse.desktop metadata::trusted true || true
+      [ -f ~/Desktop/eclipse-committers.desktop ] && gio set ~/Desktop/eclipse-committers.desktop metadata::trusted true || true      
       [ -f ~/Desktop/code.desktop ] && gio set ~/Desktop/code.desktop metadata::trusted true || true
 
       # Turn off screen blanking via X
@@ -1291,42 +1325,53 @@ write_files:
     content: |
       TTCN3_DIR := /opt/titan.core/Install
       OPENSSL_DIR := /usr
-      JDKDIR := $JAVA_HOME
       XMLDIR := /usr
-      GEN_PDF := no      
-      OLD_LIBEDIT := yes
-      ##--  Java/C++  --##
+      GEN_PDF := no
+      OLD_LIBEDIT := no
       JNI := no
-      #COMPILERFLAGS += -Wall -Wlogical-op -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-      ##--  Raspberry Pi  --##
-      #COMPILERFLAGS := -Wall -fsigned-char
-      ##--  clang compiler ver. 3.8  --##
-      #CXX := clang++-3.8
-      #CC := clang-3.8
-      ##--  Alpine  --##
-      #ALPINE_LINUX := yes       
-      ###TTCN3_DIR := /home/multipass/titan.core/Install
-      ###OPENSSL_DIR := /usr
-      ###JDKDIR := $JAVA_HOME
-      ###XMLDIR := /usr
-      ###JNI := yes
-      ###GEN_PDF := no
-      ###COMPILERFLAGS += -Wall -Wlogical-op -I$(JDKDIR)/include -I$(JDKDIR)/include/linux
-      ###OLD_LIBEDIT := yes
+      ## Compiler selection
+      CXX             := g++             # or clang++ if desired
+      CC              := gcc             # or clang
+
+      ## Platform defines
+      COMPILERFLAGS   := -DLINUX -Wall
+
+      ## Readline / line‐editing support
+      # Using system readline/libedit (modern)
+      CPPFLAGS := -I/usr/include/readline -I/usr/include -I/usr/local/include
+      LDFLAGS  :=  -L/usr/lib/x86_64-linux-gnu -lreadline -lncurses -lcrypto -lxml2
   - path: /etc/profile.d/titan-env.sh
-    owner: multipass:multipass
+    owner: root:root
     permissions: '0644'
     defer: true
     content: |
       export TTCN3_DIR=/opt/titan.core/Install
       export PATH=$TTCN3_DIR/bin:$PATH
       export LD_LIBRARY_PATH=$TTCN3_DIR/lib:$LD_LIBRARY_PATH
+  - path: /etc/profile.d/titan-designer-env.sh
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+      export DESIGNER_JARS=/opt/titan_designer/jars
+      export ECLIPSE_COMMITTERS_HOME=/opt/eclipse-committers
+      export COMPILER_LOCATION=/opt/titan.core
+      export ANTLR4_JAR=\$DESIGNER_JARS/antlr-4.7.1-complete.jar
+      export JUNG_GRAPH_JAR=\$DESIGNER_JARS/jung-graph-impl-2.1.1.jar
+      export JUNG_VIS_JAR=\$DESIGNER_JARS/jung-visualization-2.1.1.jar
+      export JUNG_ALG_JAR=\$DESIGNER_JARS/jung-algorithms-2.1.1.jar
+      export JUNG_IO_JAR=\$DESIGNER_JARS/jung-io-2.1.1.jar
+      export GUAVA_JAR=\$DESIGNER_JARS/guava-21.0.jar
+      export APACHE_POI_JAR=\$DESIGNER_JARS/poi-3.9.jar
+      export JUNIT_JAR=\$DESIGNER_JARS/junit-4.11.jar
+      export TITAN_DESIGNER_RESULT=/opt/titan_designer/result       
   - path: /home/multipass/org.eclipse.titan.designer.prefs
     owner: multipass:multipass
     permissions: '0644'
     defer: true
     content: |      
         #eclipse.preferences.version=1
+        org.eclipse.titan.designer.TTCN3_INSTALL_DIR=/opt/titan.core/Install        
         org.eclipse.titan.designer.checkForLowMemory=false
         org.eclipse.titan.designer.enableDocumentCommentOnTheFlyCheck=true
         org.eclipse.titan.designer.enableOOPExtension=true
@@ -1425,23 +1470,57 @@ runcmd:
   - [ sh, -c, "rm -f /home/multipass/fastfetch-linux-amd64.deb"]  
 # ====================================================================================================================================================
 #                          BUILD TITAN FROM SOURCE  
-#           TITAN 11.1.0 is not configured to compile with most recent Kernel
 # ====================================================================================================================================================
   - [ sh, -c, "git clone https://gitlab.eclipse.org/eclipse/titan/titan.core.git /opt/titan.core" ]
   - [ sh, -c, "chown -R multipass:multipass /opt/titan.core" ]  
   - [ sh, -c, "sudo -u multipass bash -c 'mv /home/multipass/Makefile.personal /opt/titan.core/Makefile.personal'"]    
-  - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && git fetch && git checkout 11.1.0 && git pull'" ]
-  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make -j$(nproc)'" ]
-  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make install'" ]
-  #- [ sh, -c, "/etc/profile.d/titan-env.sh" ]  
+  - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && git fetch && git pull && git checkout -b v_11.1.0 11.1.0'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make'" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make install'" ]
 # ====================================================================================================================================================
 #                          BUILD TITAN DESIGNER FROM SOURCE 
 #   https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins/-/blob/master/README?ref_type=heads
 # ====================================================================================================================================================
   - [ sh, -c, "git clone https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins /opt/titan.EclipsePlug-ins" ]
-  - [ sh, -c, "chown -R multipass:multipass /opt/titan.EclipsePlug-ins" ]    
-  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && git fetch && git checkout 11.1.0 && git pull'" ]
-  #- [ sh, -c, "sudo -u multipass bash -c 'mv /home/multipass/Makefile.personal /opt/titan.core/Makefile.personal'"]  
-  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make -j$(nproc)'" ]
-  #- [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.core && make install'" ]
-  #- [ sh, -c, "/etc/profile.d/titan-env.sh" ]
+  - [ sh, -c, "chown -R multipass:multipass /opt/titan.EclipsePlug-ins" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.EclipsePlug-ins && git fetch && git pull && git checkout -b v_11.1.0 11.1.0'" ]
+  - [ sh, -c, "sed -i 's|JAVA_HOME_11|JAVA_HOME_21|' /etc/profile.d/java.sh" ]
+  - [ sh, -c, "source /etc/profile.d/java.sh" ]
+  - [ sh, -c, "source /etc/profile.d/titan-designer-env.sh" ]
+  - [ sh, -c, "mkdir -p /opt/titan_designer/jars /opt/titan_designer/result" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/antlr-4.7.1-complete.jar https://www.antlr.org/download/antlr-4.7.1-complete.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/junit-4.11.jar https://search.maven.org/remotecontent?filepath=junit/junit/4.11/junit-4.11.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/guava-21.0.jar https://repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar" ]
+  - [ sh, -c, "for jar in jung-graph-impl jung-visualization jung-algorithms jung-io; do wget -4 -O /opt/titan_designer/jars/\${jar}-2.1.1.jar https://repo1.maven.org/maven2/net/sf/jung/\${jar}/2.1.1/\${jar}-2.1.1.jar; done" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/eclipse-collections-api-11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections-api/11.1.0/eclipse-collections-api-11.1.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/eclipse-collections-11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections/11.1.0/eclipse-collections-11.1.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/poi-3.9.jar https://repo1.maven.org/maven2/org/apache/poi/poi/3.9/poi-3.9.jar" ]
+  - [ sh, -c, "chown -R multipass:multipass /opt/titan_designer" ]
+  - [ sh, -c, "wget -4 -O /home/multipass/eclipse-committers.tar.gz https://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2025-09/R/eclipse-committers-2025-09-R-linux-gtk-x86_64.tar.gz" ]
+  - [ sh, -c, "tar -xzf /home/multipass/eclipse-committers.tar.gz -C /opt/" ]
+  - [ sh, -c, "chown -R multipass:multipass /opt/eclipse-committers" ]
+  - [ sh, -c, "sudo mv /home/multipass/eclipse-committers.tar.gz /opt/eclipse-backup" ] 
+  - [ sh, -c, "mkdir -p /home/multipass/eclipse-committers-workspace" ]
+  - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-committers-workspace" ]
+  - [ sh, -c, "mv /opt/titan_designer/jars/eclipse-collections-* /opt/eclipse-committers/plugins/" ]
+  - [ sh, -c, "cd /opt/titan.EclipsePlug-ins/automatic_build && \
+      ant -f build_main.xml \
+      -DJAVA_HOME=$JAVA_HOME_21 \
+      -DECLIPSE_HOME=$ECLIPSE_COMMITTERS_HOME \
+      -Dcompiler.location=$COMPILER_LOCATION \
+      -Dantlr4.jar.location=$ANTLR4_JAR \
+      -lib $JUNG_GRAPH_JAR \
+      -lib $JUNG_VIS_JAR \
+      -lib $JUNG_ALG_JAR \
+      -lib $JUNG_IO_JAR \
+      -lib $GUAVA_JAR \
+      -lib $APACHE_POI_JAR \
+      -lib $JUNIT_JAR \
+      -Dupdatesite.release.location=$TITAN_DESIGNER_RESULT/update_site \
+      -Dupdatesite.FOA.location=$TITAN_DESIGNER_RESULT/FOA_update_site \
+      -Dupdatesite.experimental.location=$TITAN_DESIGNER_RESULT/experimental_update_site \
+      -Dupdatesite.testing.location=$TITAN_DESIGNER_RESULT/testing_update_site \
+      -Dupdatesites.tmp.location=$TITAN_DESIGNER_RESULT/eclipse_automatic_build/tmp_update_sites \
+      -Dzip.dir=$TITAN_DESIGNER_RESULT/plugin/ zip" ]
+  - [ sh, -c, "sed -i 's|JAVA_HOME_21|JAVA_HOME_11|' /etc/profile.d/java.sh" ]
+  - [ sh, -c, "source /etc/profile.d/java.sh" ]

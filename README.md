@@ -3,9 +3,9 @@ This is a cloud-init template that provision a remote workstation configured for
 ```
 #cloud-config
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------------------------------------------------
                           UBUNTU WORKSTATION ENVIRONMENT SETUP FOR DEVELOPMENT 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------------------------------------------------
   Author:          Marco Aurelio Micheletto
 
   Created:         October 2025
@@ -36,12 +36,16 @@ This is a cloud-init template that provision a remote workstation configured for
 
 
   Reference Documentation:
-      - Multipass documentation:
+    - Multipass documentation:
               https://multipass.run/docs
     - cloud-init reference:
         https://cloudinit.readthedocs.io/en/latest/
     - autoinstall reference:
         https://canonical-subiquity.readthedocs-hosted.com/en/latest/intro-to-autoinstall.html 
+    - ECLIPSE TITAN
+        https://gitlab.eclipse.org/eclipse/titan/titan.core
+        https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins
+        https://projects.eclipse.org/projects/tools.titan
 
   Description:
     This cloud-init configuration automatically provisions a Ubuntu development 
@@ -63,11 +67,11 @@ This is a cloud-init template that provision a remote workstation configured for
     Can be integrated to any provisioning tool that accepts cloud-ini file:
       - Multipass
       - Packer / Qemu
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------------------------------------------------------
                           !!!! UBUNTU DROPPED LTS FOR VAGRANT IMAGES !!!!
               https://documentation.ubuntu.com/public-images/public-images-explanation/vagrant/
               
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------------------------------------------------------
                           BENCHMARK
 
 --------------------------------------------------------------------------------------
@@ -122,7 +126,7 @@ This is a cloud-init template that provision a remote workstation configured for
 ----------------------------------------------------------------------------------------------
 
 
------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
                           ADJUST VM CAPABILITIES TO WHAT IS DOABLE BASED ON HOST SPECS 
   >  multipass get --keys
        local.dev-workstation.cpus
@@ -137,7 +141,7 @@ This is a cloud-init template that provision a remote workstation configured for
      4. Manage SSH fingerprints (known_hosts)
      5. Use tools to transfer files between host and guest
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------------------------------------------------
                           PREPARATION
  
   !!!!    For credentials setup and adjustments follow the tags {USER_INPUT}   !!!!
@@ -146,7 +150,7 @@ This is a cloud-init template that provision a remote workstation configured for
        keep standard user multipass password multipass
 
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ -------------------------------------------------------------------------------------------------------------------------------
                           HYPER-V DEPLOY
 
    Configure host static IPs (Hyper-V)
@@ -194,7 +198,7 @@ This is a cloud-init template that provision a remote workstation configured for
      > multipass start dev-workstation
      > multipass shell dev-workstation
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ ----------------------------------------------------------------------------------------------------------------------------
                           VIRTUALBOX DEPLOY
 
    Launch Multipass only, network setup is after provisioning:
@@ -249,7 +253,7 @@ This is a cloud-init template that provision a remote workstation configured for
      > multipass start dev-workstation
      > multipass shell dev-workstation
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ ---------------------------------------------------------------------------------------------------------------------------
                           CONNECTIVITY & FILE TRANSFER
 
    SSH access:
@@ -270,7 +274,7 @@ This is a cloud-init template that provision a remote workstation configured for
          Username: multipass
          Key/File: (same SSH private key as authorized_keys)
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------------------------------------------------
                           CLEANUP & MAINTENANCE
  
     Removing instances:
@@ -303,69 +307,10 @@ This is a cloud-init template that provision a remote workstation configured for
          > reboot host
          > provision again with multipass launch
 
- -----------------------------------------------------------------------------------------------------------------------------------------------
+ ------------------------------------------------------------------------------------------------------------------------------
                           GNOME BLACK SCREEN (due to XRDP login idle)              
 
       Black screen due to XRDP Login idle 
         > sudo pkill -u multipass gnome-session-binary
         > sudo pkill -u multipass Xorg
         > sudo rm -rf /tmp/.X10-lock /tmp/.X11-unix/X10
-
- -----------------------------------------------------------------------------------------------------------------------------------------------
-                          PROVISIONED FILES
-             
-  !!!!    For credentials setup and adjustments follow the tags {USER_INPUT}   !!!!
- 
-  User Home Files (/home/multipass/)
-
-  staged files for provision
-       /home/multipass/org.eclipse.titan.designer.prefs
-       /home/multipass/compile.launch
-       /home/multipass/initialize.launch
-       /home/multipass/run.launch
-
-   X setup  
-       /home/multipass/.netrc
-       /home/multipass/.bashrc
-       /home/multipass/.xsession
-       /home/multipass/.config/systemd/user/setup-desktop.service
-       /home/multipass/.config/autostart/desktop-tweaks.sh
-
-   Maven
-       /home/multipass/.m2/settings.xml
-
-   Python
-       /home/multipass/requirements.txt
-
-   TITAN engine
-       /home/multipass/Makefile.personal
-
-   Desktop files
-       /home/multipass/Desktop/eclipse.desktop
-       /home/multipass/Desktop/code.desktop
-
-   Networking
-       /etc/netplan/99-hyperv-multipass.yaml
-       /etc/netplan/100-vbox-multipass.yaml
-
-   Profile environment
-       /etc/profile.d/java.sh
-       /etc/profile.d/maven.sh
-       /etc/profile.d/eclipse.sh
-       /etc/profile.d/titan-env.sh
-
-   XRDP configuration
-       /etc/xrdp/xrdp-rdc.ini
-       /etc/xrdp/xrdp.ini
-       /etc/xrdp/startwm.sh
-       /etc/xrdp/sesman.ini
-
-   Systemd services
-       /etc/systemd/system/xrdp-rdc.service
-       /usr/lib/systemd/system/xrdp.service
-
-   GDM / Display Manager
-       /etc/gdm3/custom.conf
-
-   Boot configuration
-       /etc/default/grub

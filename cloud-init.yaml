@@ -34,24 +34,28 @@
 #
 #  Reference Documentation:
 #    - Multipass documentation:
-#        https://multipass.run/docs
+#              https://multipass.run/docs
 #    - cloud-init reference:
 #        https://cloudinit.readthedocs.io/en/latest/
 #    - autoinstall reference:
 #        https://canonical-subiquity.readthedocs-hosted.com/en/latest/intro-to-autoinstall.html 
+#    - ECLIPSE TITAN
+#        https://gitlab.eclipse.org/eclipse/titan/titan.core
+#        https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins
+#        https://projects.eclipse.org/projects/tools.titan
 #
 #  Description:
 #    This cloud-init configuration automatically provisions a Ubuntu development 
 #    environment for use with:
 #      - Eclipse IDE configured with TITAN Designer plugin
+#      - Eclipse for Committers
 #      - Visual Studio Code 
 #      - Maven
 #      - Java 11 and 21 (OpendJDK and Temurin )
 #      - Python
-#      - TTCN-3
 #      - XRDP dual connection (RDC and HYPER-V enhanced mode connections)
 #      - Visual Code
-#      - TITAN Core
+#      - TTCN-3 TITAN Core
 #      - TITAN Designer
 #      - GNOME
 #      - XFCE4
@@ -68,56 +72,60 @@
 # -----------------------------------------------------------------------------------------------------------------------------------------------
 #                          BENCHMARK
 #
-#--------------------------------------------------------------------------------------
-#| Feature / Laptop                 |          (i5-1135G7, 32 GB DDR4-2667)           | 
-#| :------------------------------- | :-----------------------------------------------| 
-#| CPU cores / threads usable by VM | 2 vCPUs max (≈ 50 % CPU load for host)          | 
-#| CPU load under full VM           | 90–100 % → throttling likely                    | 
-#| RAM allocated for VM             | 8–12 GB                                         | 
-#| RAM bandwidth required           | DDR4-2667 (~42 GB/s max) → may saturate         | 
-#| NVMe throughput demand           | PCIe 3.0 x4 → ~1.5–2 GB/s seq, 0.5–1 GB/s rand  | 
-#| GPU load (for GUI acceleration)  | Iris Xe 80 EUs → ok for XFCE / light GNOME      | 
-#| Disk I/O bottleneck              | Likely under heavy builds                       | 
-#| Thermal throttling risk          | Medium-high (>90 °C under sustained load)       | 
-#| Multipass backend performance    | `Hyper-V` (best option)                         | 
-#| Practical max VM spec (zero-lag) | 2 vCPUs, 8 GB RAM, XFCE, pagefile 8–12 GB       | 
-#--------------------------------------------------------------------------------------
-#| Expected VM responsiveness       | Fair-poor; freezes possible under build load    | 
-#--------------------------------------------------------------------------------------
-#
-#
-#| Feature / Laptop                 |      (i7-1320P, 32 GB LPDDR5-5200, UHD Graphics)            |
-#| :------------------------------- |:----------------------------------------------------------- |
-#| CPU cores / threads usable by VM | 4–6 vCPUs (≈ 33–50 % CPU load for host)                     |
-#| CPU load under full VM           | 55–70 % → smooth operation under load                       |
-#| RAM allocated for VM             | 16–24 GB                                                    |
-#| RAM bandwidth required           | LPDDR5-5200 (~83 GB/s total dual channel) → ample           |
-#| NVMe throughput demand           | PCIe 4.0 x4 → ~5–6 GB/s seq, 2–3 GB/s rand                  |
-#| GPU load (for GUI acceleration)  | Intel UHD (64 EUs) → usable but limited for GNOME animations|
-#| Disk I/O bottleneck              | Minimal                                                     |
-#| Thermal throttling risk          |Low (hybrid design + efficient cooling)                      |
-#| Multipass backend performance    |`Hyper-V` (recommended)                                      |
-#| Practical max VM spec (zero-lag) | 4 vCPUs, 16 GB RAM, GNOME/XFCE, pagefile 16 GB              |
-#--------------------------------------------------------------------------------------------------
-#| Expected VM responsiveness       | Excellent for real-time responsiveness and low-latency tasks|        |
-#--------------------------------------------------------------------------------------------------
-#
-#
-#| Feature / Laptop                 |  (i7-12800H, 32 GB DDR5-5200, Iris Xe + GeForce MX550)     |
-#| :------------------------------- |:-----------------------------------------------------------|
-#| CPU cores / threads usable by VM | 4–6 vCPUs (≈ 40–60 % CPU load for host)                    |
-#| CPU load under full VM           | 60–80 % → minimal throttling with GPU offload              |
-#| RAM allocated for VM             | 16–24 GB                                                   |
-#| RAM bandwidth required           | DDR5-5200 (~83 GB/s total dual channel) → ample            |
-#| NVMe throughput demand           | PCIe 4.0 x4 → ~5–6 GB/s seq, 2–3 GB/s rand                 |
-#| GPU load (for GUI acceleration)  | Iris Xe + MX550 → excellent for GNOME and 3D tasks         |
-#| Disk I/O bottleneck              | Minimal                                                    |
-#| Thermal throttling risk          | Medium; may throttle after long compiles (80–85 °C)        |
-#| Multipass backend performance    | `Hyper-V` (recommended)                                    |
-#| Practical max VM spec (zero-lag) | 4–6 vCPUs, 16 GB RAM, GNOME, pagefile 16 GB                |
-#------------------------------------------------------------------------------------------------|
-#| Expected VM responsiveness       | Excellent for sustained throughput and multi-VM development|
-#------------------------------------------------------------------------------------------------|
+#------------------------------------------------------------------------------------
+#| Feature / Laptop                 |          (i5-1135G7, 32 GB DDR4-2667)         |
+#| -------------------------------- | --------------------------------------------- |
+#| CPU cores / threads usable by VM | 2 vCPUs max (≈ 50 % host load)                |
+#| CPU load under full VM           | 90–100 % → throttling likely                  |
+#| RAM allocated for VM             | 8–12 GB                                       |
+#| RAM bandwidth required           | DDR4-2667 (~42 GB/s) → may saturate           |
+#| NVMe throughput demand           | ~1.5–2 GB/s seq / 0.5–1 GB/s rand             |
+#| GPU load (GUI acceleration)      | Iris Xe 80 EUs → sufficient for XFCE only     |
+#| Expected VM responsiveness       | Poor – input lag and freezes possible         |
+#| Disk I/O bottleneck              | Likely under heavy compile                    |
+#| Thermal throttling risk          | Medium-High – throttles easily                |
+#| Multipass backend performance    | Hyper-V recommended                           |
+#| Practical max VM spec (zero-lag) | 2 vCPUs, 8 GB RAM, XFCE, SSD pagefile 8–12 GB |
+#------------------------------------------------------------------------------------
+#| Overall classification           |    Basic – Not for heavy VM use               |
+#------------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------------------------
+#| Feature / Laptop                 |        (i7-13620H, 32 GB LPDDR5-5200, Intel UHD)           | 
+#| -------------------------------- | ---------------------------------------------------------- | 
+#| CPU cores / threads usable by VM | 6–8 vCPUs (≈ 35–55 % host load)                            |
+#| CPU load under full VM           | 50–65 % → smooth operation, strong multithread             | 
+#| RAM allocated for VM             | 16–24 GB                                                   | 
+#| RAM bandwidth required           | LPDDR5-5200 (~83 GB/s dual-channel) → ample bandwidth      | 
+#| NVMe throughput demand           | 5–6 GB/s seq / 2–3 GB/s rand                               | 
+#| GPU load (GUI acceleration)      | Intel UHD 64 EUs → adequate for XFCE and light GNOME       |
+#| Expected VM responsiveness       | Excellent – fast compile and interactive responsiveness    |
+#| Disk I/O bottleneck              | Minimal / fast load and build times                        |
+#| Thermal throttling risk          | Low–Medium – 45 W CPU but efficient cooling                |
+#| Multipass backend performance    | Hyper-V (best for low latency and desktop integration)     |
+#| Practical max VM spec (zero-lag) | 6 vCPUs, 16–20 GB RAM, GNOME/XFCE, SSD pagefile 16–20 GB   |
+#-------------------------------------------------------------------------------------------------
+#| Overall classification           |  Excellent – Near-workstation responsiveness;              | 
+#|                                  |            ideal for active development VMs                |
+#-------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------
+#| Feature / Laptop                 |            (i7-12800H, 32 GB DDR5-5200, Iris Xe + MX550)                |
+#| -------------------------------- | ------------------------------------------------------------------------|
+#| CPU cores / threads usable by VM | 6–8 vCPUs (≈ 40–60 % host load)                                         |
+#| CPU load under full VM           | 65–80 % → stable sustained performance                                  |
+#| RAM allocated for VM             | 16–24 GB                                                                |
+#| RAM bandwidth required           | DDR5-5200 (~83 GB/s dual-channel) → ample bandwidth                     |
+#| NVMe throughput demand           | 5–6 GB/s seq / 2–3 GB/s rand                                            |
+#| GPU load (GUI acceleration)      | Iris Xe + GeForce MX550 → ideal for GNOME and GPU-accelerated apps      |
+#| Expected VM responsiveness       | Excellent – best for multi-VM sustained load                            |
+#| Disk I/O bottleneck              | Minimal / high consistency under load                                   |
+#| Thermal throttling risk          | Medium – may throttle under long compiles but recovers fast             |
+#| Multipass backend performance    | Hyper-V (best for sustained multi-core performance)                     |
+#| Practical max VM spec (zero-lag) | 6–8 vCPUs, 16–20 GB RAM, GNOME, SSD pagefile 16 GB                      |
+#--------------------------------------------------------------------------------------------------------------
+#| Overall classification           |  Workstation-grade – best for sustained multi-VM tasks                  |
+#--------------------------------------------------------------------------------------------------------------
 
 # ===============================================================================================================================================
 #                          ADJUST VM CAPABILITIES TO WHAT IS DOABLE BASED ON HOST SPECS 
@@ -203,7 +211,7 @@
 #         --name dev-workstation `
 #         --memory 12G `
 #         --disk 20G `
-#         --cloud-init cloud-init-mutipass.yaml
+#         --cloud-init cloud-init-multipass.yaml
 #
 #   > in VBox-mode multipass have reserved network adapters (enp0s1, enp0s3) and also is VBox who define the name
 #     of network adapters, if VBox set a different network adapter name from enp0s8,
@@ -262,9 +270,9 @@
 #       192.168.138.102   dev-workstation
 #
 #   File Transfer Tools:
-#     - **Multipass mount**:
+#     - Multipass mount:
 #         > multipass mount "C:\Users\YourUser\Projects" dev-workstation:/home/multipass/Shared
-#     - **WinSCP**:
+#     - WinSCP:
 #         Protocol: SFTP
 #         Host: 192.168.138.102
 #         Username: multipass
@@ -315,62 +323,6 @@
 #                          PROVISIONED FILES              
 #  !!!!    For credentials setup and adjustments follow the tags {USER_INPUT}   !!!!
 # ===============================================================================================================================================
-#
-#  User Home Files (/home/multipass/)
-#
-#  staged files for provision
-#       /home/multipass/org.eclipse.titan.designer.prefs
-#       /home/multipass/compile.launch
-#       /home/multipass/initialize.launch
-#       /home/multipass/run.launch
-#
-#   X setup  
-#       /home/multipass/.netrc
-#       /home/multipass/.bashrc
-#       /home/multipass/.xsession
-#       /home/multipass/.config/systemd/user/setup-desktop.service
-#       /home/multipass/.config/autostart/desktop-tweaks.sh
-#
-#   Maven
-#       /home/multipass/.m2/settings.xml
-#
-#   Python
-#       /home/multipass/requirements.txt
-#
-#   TITAN engine
-#       /home/multipass/Makefile.personal
-#
-#   Desktop files
-#       /home/multipass/Desktop/eclipse.desktop
-#       /home/multipass/Desktop/code.desktop
-#
-#   Networking
-#       /etc/netplan/99-hyperv-multipass.yaml
-#       /etc/netplan/100-vbox-multipass.yaml
-#
-#   Profile environment
-#       /etc/profile.d/java.sh
-#       /etc/profile.d/maven.sh
-#       /etc/profile.d/eclipse.sh
-#       /etc/profile.d/titan-env.sh
-#       /etc/profile.d/titan-designer-env.sh
-#
-#   XRDP configuration
-#       /etc/xrdp/xrdp-rdc.ini
-#       /etc/xrdp/xrdp.ini
-#       /etc/xrdp/startwm.sh
-#       /etc/xrdp/sesman.ini
-#
-#   Systemd services
-#       /etc/systemd/system/xrdp-rdc.service
-#       /usr/lib/systemd/system/xrdp.service
-#
-#   GDM / Display Manager
-#       /etc/gdm3/custom.conf
-#
-#   Boot configuration
-#       /etc/default/grub
-#
 # ===============================================================================================================================================
 #                          ENABLE THIS IF cloud-init will boot an Ubuntu image using cloud-ini user-data | meta-data setup
 #               I.Ex.: "https://cloud-images.ubuntu.com/${var.ubuntu_version}/current/${var.ubuntu_version}-server-cloudimg-amd64.img" 
@@ -427,9 +379,9 @@ bootcmd:
   - [ bash, -c, "if [ ! -f /var/lib/cloud/firstboot_done ]; then add-apt-repository universe -y && touch /var/lib/cloud/firstboot_done && apt-get update -y; fi" ]
 users:
   - name: multipass
-    sudo: ALL=(ALL) NOPASSWD:ALL
+    sudo: ALL=(ALL) NOPASSWD:ALL 
     shell: /bin/bash
-    groups: [sudo,users,admin]
+    groups: [sudo,users,admin] 
     lock_passwd: false
     plain_text_passwd: multipass
 # ===============================================================================================================================================
@@ -437,8 +389,7 @@ users:
 # ===============================================================================================================================================
     ssh_authorized_keys:
 #          {USER_INPUT} I.Ex.: - ssh-ed25519...
-        - ssh-ed25519 ...
-
+    shell: /bin/bash    
 ssh_pwauth: true
 disable_root: false
 # ===============================================================================================================================================
@@ -446,10 +397,10 @@ disable_root: false
 # ===============================================================================================================================================
 #          {USER_INPUT} setup locale and regional settings
 keyboard:
-  layout: pt_br
-  variant: ''
-timezone: Europe/Lisbon
-locale: en_US.UTF-8
+  layout:
+  variant: 
+timezone: 
+locale: 
 packages:
 # ===============================================================================================================================================
 #                          Core system tools 
@@ -521,8 +472,9 @@ packages:
   - openjdk-11-jdk
   - openjdk-21-jdk
   - nodejs
-  - gedit
-  - imagemagick 
+  - gedit 
+  - imagemagick
+  - colordiff
 # ====================================================================================================================================================
 #                          Internet Tools & Browsers 
 # ====================================================================================================================================================
@@ -566,22 +518,31 @@ packages:
 #  - |
 #    -----BEGIN CERTIFICATE-----
 #   -----END CERTIFICATE-----
+ca_certs:
+  remove_defaults: false
+  trusted:  
+  - 
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+  - |
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
 write_files:
 # ====================================================================================================================================================
 #                          github/gitlab credentials (PASSWORD = personal token)
 # ====================================================================================================================================================
 #          {USER_INPUT} I.Ex.: this is a .netrc file
 #=====================================================================================================================================================
-#      #   !!! PASSWORD IS PERSONAL TOKEN, not github.com password!!!
+#          !!! PASSWORD IS PERSONAL TOKEN, not github.com password!!!
 #=====================================================================================================================================================
-#  - path: /home/multipass/.netrc
-#    owner: multipass:multipass
-#    permissions: '0600'
-#    defer: true 
-#    content: |
-#      machine 
-#      login 
-#      password 
+  - path: /home/multipass/.netrc
+    owner: multipass:multipass
+    permissions: '0600'
+    defer: true 
+    content: |
+      machine github.com
+      login 
+      password 
   - path: /home/multipass/.xsession
     owner: multipass:multipass
     permissions: '0777'
@@ -643,30 +604,33 @@ write_files:
               PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
           fi
       fi      
-  - path: /etc/netplan/99-hyperv-multipass.yaml
-    owner: root:root
-    permissions: '0644'
-    content: |
-      network:
-        version: 2
-        ethernets:
-          eth3:
-            match:
-              macaddress: 52:54:00:4b:ab:cd
-            set-name: eth3
-            dhcp4: false
-            addresses:
-              - 192.168.138.102/24
-            routes:
-              - to: 0.0.0.0/0
-                via: 192.168.138.1
-            nameservers:
-              addresses: [8.8.8.8, 1.1.1.1]     
+# ====================================================================================================================================================
+#          {USER_INPUT} Enable 99-hyperv-multipass.yaml or 100-vbox-multipass.yaml based on virtual adapter
+#=====================================================================================================================================================            
+#  - path: /etc/netplan/99-hyperv-multipass.yaml
+#    owner: root:root
+#    permissions: '0644'
+#    content: |
+#      network:
+#        version: 2
+#        ethernets:
+#          eth3:
+#            match:
+#              macaddress: 52:54:00:4b:ab:cd
+#            set-name: eth3
+#            dhcp4: false
+#            addresses:
+#              - 192.168.138.102/24
+#            routes:
+#              - to: 0.0.0.0/0
+#                via: 192.168.138.1
+#            nameservers:
+#              addresses: [8.8.8.8, 1.1.1.1]     
   - path: /etc/netplan/100-vbox-multipass.yaml
     owner: root:root
     permissions: '0644'
     content: |
-      network:
+     network:
         version: 2
         ethernets:
           enp0s8:
@@ -680,7 +644,7 @@ write_files:
               - to: 0.0.0.0/0
                 via: 192.168.138.1
             nameservers:
-              addresses: [8.8.8.8, 1.1.1.1]            
+              addresses: [8.8.8.8, 1.1.1.1]                   
 # ====================================================================================================================================================
 #                          JAVA VERSION
 # ====================================================================================================================================================
@@ -727,21 +691,21 @@ write_files:
                             http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
         <activeProfiles>
-          <activeProfile></activeProfile>
+          <activeProfile>github</activeProfile>
         </activeProfiles>
         <profiles>
           <profile>
-            <id></id>
+            <id>github</id>
             <repositories>
               <repository>
-                <id></id>
-                <url></url>
+                <id>central</id>
+                <url>https://repo1.maven.org/maven2</url>
               </repository>
               <repository>
-                <id></id>
+                <id>github</id>
                 <url></url>
                 <snapshots>
-                  <enabled></enabled>
+                  <enabled>true</enabled>
                 </snapshots>
               </repository>
             </repositories>
@@ -749,9 +713,9 @@ write_files:
         </profiles>
         <servers>
           <server>
-            <id></id>
-            <username></username>
-            <password></password>
+            <id>github</id>
+              <username></username>
+              <password></password>
           </server>
         </servers>
       </settings>
@@ -1030,7 +994,7 @@ write_files:
 #                           CHANGE SESSION XFCE4 / GNOME
 #                       !!!! OR X11 OR XRDP (NOT BOTH) !!!!
 #                           (see /etc/gdm3/custom.conf)
-#          {USER_INPUT} I.Ex.: IN THE SECTION BELOW YOU CAN CHANGE XFCE4 / GNOME EVEN AFTER PROVISIONING       
+# {USER_INPUT} I.Ex.: THE SECTION BELOW CHANGES XFCE4 / GNOME EVEN AFTER PROVISIONING       
 # ====================================================================================================================================================
   - path: /etc/xrdp/startwm.sh
     owner: root:root
@@ -1051,7 +1015,6 @@ write_files:
       unset DBUS_SESSION_BUS_ADDRESS
       # start a dbus session
       eval $(dbus-launch --sh-syntax --exit-with-session)
-      /home/multipass/.config/autostart/desktop-tweaks.sh
       xhost +SI:localuser:root 
       setxkbmap pt
       . /etc/default/locale
@@ -1062,6 +1025,7 @@ write_files:
       #===============================================================================================================================================
       #                        LAUNCH GNOME
       exec gnome-session --session=ubuntu
+      /home/multipass/.config/autostart/desktop-tweaks.sh
       # ==============================================================================================================================================
       if test -r /etc/profile; then
           . /etc/profile
@@ -1081,10 +1045,10 @@ write_files:
       #test -x /etc/X11/Xsession && exec /etc/X11/Xsession
       #exec /bin/sh /etc/X11/Xsession
       #
-      #Black screen due to XRDP Login idle 
+      #CRASH HELPERS
       #sudo pkill -u multipass gnome-session-binary
       #sudo pkill -u multipass Xorg
-      #sudo rm -rf /tmp/.X10-lock /tmp/.X11-unix/X10
+      #sudo rm -rf /tmp/.X10-lock /tmp/.X11-unix/X10      
   - path: /etc/xrdp/sesman.ini
     owner: root:root
     permissions: '0644'
@@ -1184,7 +1148,7 @@ write_files:
     permissions: '0644'
     defer: true
     content: |
-        export ECLIPSE_HOME=/opt/eclipse
+        export ECLIPSE_HOME=/opt/eclipse-ide/eclipse
         export PATH=$ECLIPSE_HOME:$PATH   
   - path: /usr/share/applications/eclipse.desktop
     owner: root:root
@@ -1195,8 +1159,8 @@ write_files:
         Type=Application
         Name=Eclipse IDE
         Comment=Eclipse IDE for Java and more
-        Exec=/opt/eclipse/eclipse
-        Icon=/opt/eclipse/icon.xpm
+        Exec=/opt/eclipse-ide/eclipse/eclipse
+        Icon=/opt/eclipse-ide/eclipse/icon.xpm
         Terminal=false
         Categories=Development;IDE;
         StartupNotify=true
@@ -1209,11 +1173,11 @@ write_files:
         Type=Application
         Name=Eclipse IDE
         Comment=Eclipse IDE for Java and more
-        Exec=/opt/eclipse/eclipse
-        Icon=/opt/eclipse/icon.xpm
+        Exec=/opt/eclipse-ide/eclipse/eclipse
+        Icon=/opt/eclipse-ide/eclipse/icon.xpm
         Terminal=false
         Categories=Development;IDE;
-        StartupNotify=true     
+        StartupNotify=true 
   - path: /usr/share/applications/eclipse-committers.desktop
     owner: root:root
     permissions: '0644'
@@ -1223,8 +1187,8 @@ write_files:
         Type=Application
         Name=Eclipse Committers IDE
         Comment=Eclipse CommittersIDE for Java and more
-        Exec=/opt/eclipse-committers/eclipse
-        Icon=/opt/eclipse-committers/icon.xpm
+        Exec=/opt/eclipse-committers/eclipse/eclipse
+        Icon=/opt/eclipse-committers/eclipse/icon.xpm
         Terminal=false
         Categories=Development;IDE;
         StartupNotify=true
@@ -1237,11 +1201,11 @@ write_files:
         Type=Application
         Name=Eclipse Committers IDE
         Comment=Eclipse Committers IDE for Java and more
-        Exec=/opt/eclipse-committers/eclipse
-        Icon=/opt/eclipse-committers/icon.xpm
+        Exec=/opt/eclipse-committers/eclipse/eclipse
+        Icon=/opt/eclipse-committers/eclipse/icon.xpm
         Terminal=false
         Categories=Development;IDE;
-        StartupNotify=true        
+        StartupNotify=true            
   - path: /home/multipass/Desktop/code.desktop
     owner: multipass:multipass
     permissions: '0755'
@@ -1309,11 +1273,61 @@ write_files:
       [ -f ~/Desktop/eclipse-committers.desktop ] && gio set ~/Desktop/eclipse-committers.desktop metadata::trusted true || true      
       [ -f ~/Desktop/code.desktop ] && gio set ~/Desktop/code.desktop metadata::trusted true || true
 
+      # Suppress GNOME Shell network notifications (modern)
+      #gsettings set org.gnome.shell.network connect-activity-enabled false || true
+      #gsettings set org.gnome.shell.network disconnect-activity-enabled false || true
+
+      # Some versions use the general notification schema
+      gsettings set org.gnome.desktop.notifications show-banners false || true
+      gsettings set org.gnome.desktop.notifications show-in-lock-screen false || true
+
+      gsettings set org.gnome.nm-applet disable-vpn-notifications true || true
+      #killall nm-applet
+      #nohup nm-applet --no-agent >/dev/null 2>&1 &
+
+      gsettings set org.gnome.desktop.notifications show-banners false
+      gsettings set org.gnome.desktop.notifications show-in-lock-screen false
+      #gsettings set org.gnome.desktop.notifications show-badge false
+
       # Turn off screen blanking via X
       xset s off
       #xset -dpms
       xset s noblank
       sudo update-desktop-database
+# ====================================================================================================================================================
+#                          PYTHON LIBRARIES
+# ====================================================================================================================================================
+  - path: /home/multipass/requirements.txt
+    owner: root:root
+    permissions: '0644'
+    defer: true    
+    content: |    
+      # HTTP & SSL
+      requests
+      pyOpenSSL
+      
+      # Websockets
+      simple-websocket-server
+      websocket-client
+      
+      # Google API / Auth
+      google-auth
+      google-auth-oauthlib
+      google-auth-httplib2
+      google-api-python-client
+      
+      # YAML / JSON
+      PyYAML
+      jsons
+
+      # Testing      
+      pytest
+
+      #Utils
+      termcolor
+
+      #IDE Jupyter
+      notebook
 # ====================================================================================================================================================
 #                          TITAN ENGINE FLAGS FOR COMPILATION
 #  https://gitlab.eclipse.org/eclipse/titan/titan.core/-/blob/master/README.linux?ref_type=heads   
@@ -1353,30 +1367,1620 @@ write_files:
     permissions: '0644'
     defer: true
     content: |
-      export DESIGNER_JARS=/opt/titan_designer/jars
-      export ECLIPSE_COMMITTERS_HOME=/opt/eclipse-committers
+      export DESIGNER_JARS=/opt/titan_designer/jars/build
+      export ECLIPSE_COMMITTERS_HOME=/opt/eclipse-committers/eclipse
       export COMPILER_LOCATION=/opt/titan.core
-      export ANTLR4_JAR=\$DESIGNER_JARS/antlr-4.7.1-complete.jar
-      export JUNG_GRAPH_JAR=\$DESIGNER_JARS/jung-graph-impl-2.1.1.jar
-      export JUNG_VIS_JAR=\$DESIGNER_JARS/jung-visualization-2.1.1.jar
-      export JUNG_ALG_JAR=\$DESIGNER_JARS/jung-algorithms-2.1.1.jar
-      export JUNG_IO_JAR=\$DESIGNER_JARS/jung-io-2.1.1.jar
-      export GUAVA_JAR=\$DESIGNER_JARS/guava-21.0.jar
-      export APACHE_POI_JAR=\$DESIGNER_JARS/poi-3.9.jar
-      export JUNIT_JAR=\$DESIGNER_JARS/junit-4.11.jar
-      export TITAN_DESIGNER_RESULT=/opt/titan_designer/result       
+      export ANTLR4_JAR=$DESIGNER_JARS/antlr-4.7.1-complete.jar
+      export JUNG_GRAPH_JAR=$DESIGNER_JARS/jung-graph-impl-2.1.1.jar
+      export JUNG_VIS_JAR=$DESIGNER_JARS/jung-visualization-2.1.1.jar
+      export JUNG_ALG_JAR=$DESIGNER_JARS/jung-algorithms-2.1.1.jar
+      export JUNG_IO_JAR=$DESIGNER_JARS/jung-io-2.1.1.jar
+      export GUAVA_JAR=$DESIGNER_JARS/guava-21.0.jar
+      export APACHE_POI_JAR=$DESIGNER_JARS/poi-3.9.jar
+      export JUNIT_JAR=$DESIGNER_JARS/junit-4.11.jar
+      export TITAN_DESIGNER_RESULT=/opt/titan_designer/result
   - path: /home/multipass/org.eclipse.titan.designer.prefs
     owner: multipass:multipass
     permissions: '0644'
     defer: true
     content: |      
         #eclipse.preferences.version=1
-        org.eclipse.titan.designer.TTCN3_INSTALL_DIR=/opt/titan.core/Install        
+        org.eclipse.titan.designer.TTCN3_INSTALL_DIR=/opt/titan.core/Install
         org.eclipse.titan.designer.checkForLowMemory=false
         org.eclipse.titan.designer.enableDocumentCommentOnTheFlyCheck=true
         org.eclipse.titan.designer.enableOOPExtension=true
         org.eclipse.titan.designer.enableRealtimeExtension=true
         org.eclipse.titan.designer.useIncrementalParsing=true
+  - path: /opt/titan_designer/scripts/pom.xml
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |        
+      <?xml version="1.0" encoding="UTF-8"?>
+      <project xmlns="http://maven.apache.org/POM/4.0.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                                  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+
+        <groupId>com.titan.libs</groupId>
+        <artifactId>titan-libs-parent</artifactId>
+        <version>11.1.0</version>
+        <packaging>pom</packaging>
+        <name>Titan Designer OSGi Bundles (Parent)</name>
+
+      <modules>
+        <module>eclipse-collections-bundle</module>
+        <module>jung-bundle</module>
+        <module>apache-poi-bundle</module>
+      </modules>
+      <properties>
+          <!-- Shared build folder -->
+          <bundles.output.dir>/opt/titan_designer/scripts/target</bundles.output.dir>
+      </properties>  
+      </project>
+  - path: /opt/titan_designer/scripts/apache-poi-bundle/pom.xml
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <project xmlns="http://maven.apache.org/POM/4.0.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                                  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <parent>
+          <groupId>com.titan.libs</groupId>
+          <artifactId>titan-libs-parent</artifactId>
+          <version>11.1.0</version>
+        </parent>
+
+        <artifactId>org.apache.poi</artifactId>
+        <packaging>bundle</packaging>
+        <name>Apache POI OSGi Bundle</name>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.9.0</version>
+            <scope>system</scope>
+            <systemPath>/opt/titan_designer/jars/legacy/org.apache.poi_3.9.0.jar</systemPath>
+          </dependency>
+        </dependencies>
+
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-bundle-plugin</artifactId>
+              <version>5.1.3</version>
+              <extensions>true</extensions>
+              <configuration>
+              <outputDirectory>${bundles.output.dir}</outputDirectory>
+                <instructions>
+                  <Bundle-SymbolicName>org.apache.poi</Bundle-SymbolicName>
+                  <Bundle-Version>${project.version}</Bundle-Version>
+                  <Export-Package>*</Export-Package>
+                  <Import-Package>*</Import-Package>
+                  <Embed-Dependency>*;scope=system</Embed-Dependency>
+                </instructions>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
+      </project>
+  - path: /opt/titan_designer/scripts/eclipse-collections-bundle/pom.xml
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: | 
+      <?xml version="1.0" encoding="UTF-8"?>
+      <project xmlns="http://maven.apache.org/POM/4.0.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                                  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <parent>
+          <groupId>com.titan.libs</groupId>
+          <artifactId>titan-libs-parent</artifactId>
+          <version>11.1.0</version>
+        </parent>
+
+        <artifactId>org.eclipse.collections</artifactId>
+        <packaging>bundle</packaging>
+        <name>Eclipse Collections OSGi Bundle</name>
+
+        <dependencies>
+          <dependency>
+          <groupId>org.eclipse.collections</groupId>
+          <artifactId>eclipse-collections-api</artifactId>
+          <version>11.1.0</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/eclipse-collections-api-11.1.0.jar</systemPath>
+        </dependency>
+        <dependency>
+          <groupId>org.eclipse.collections</groupId>
+          <artifactId>eclipse-collections</artifactId>
+          <version>11.1.0</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/eclipse-collections_11.1.0.jar</systemPath>
+        </dependency>
+      </dependencies>
+
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-bundle-plugin</artifactId>
+              <version>5.1.3</version>
+              <extensions>true</extensions>
+              <configuration>
+          <outputDirectory>${bundles.output.dir}</outputDirectory>
+                <instructions>
+                  <Bundle-SymbolicName>org.eclipse.collections</Bundle-SymbolicName>
+                  <Bundle-Version>${project.version}</Bundle-Version>
+                  <Bundle-Name>org.eclipse.collections</Bundle-Name>
+                  <Export-Package>*</Export-Package>
+                  <Import-Package>*</Import-Package>
+                  <Embed-Dependency>*;scope=system</Embed-Dependency>
+                  <Embed-Transitive>true</Embed-Transitive>
+                  <Bundle-RequiredExecutionEnvironment>JavaSE-11</Bundle-RequiredExecutionEnvironment>
+                </instructions>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
+      </project>
+  - path: /opt/titan_designer/scripts/jung-bundle/pom.xml
+    owner: multipass:multipass
+    permissions: '0644'
+    defer: true
+    content: |  
+      <?xml version="1.0" encoding="UTF-8"?>
+      <project xmlns="http://maven.apache.org/POM/4.0.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                                  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <parent>
+          <groupId>com.titan.libs</groupId>
+          <artifactId>titan-libs-parent</artifactId>
+          <version>11.1.0</version>
+        </parent>
+
+        <artifactId>edu.uci.ics.jung</artifactId>
+        <packaging>bundle</packaging>
+        <name>JUNG OSGi Bundle</name>
+      <dependencies>
+        <dependency>
+          <groupId>net.sf.jung</groupId>
+          <artifactId>jung-api</artifactId>
+          <version>2.1</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/jung-api-2.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
+          <groupId>net.sf.jung</groupId>
+          <artifactId>jung-algorithms</artifactId>
+          <version>2.1</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/jung-algorithms-2.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
+          <groupId>net.sf.jung</groupId>
+          <artifactId>jung-graph-impl</artifactId>
+          <version>2.1</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/jung-graph-impl-2.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
+          <groupId>net.sf.jung</groupId>
+          <artifactId>jung-visualization</artifactId>
+          <version>2.1</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/jung-visualization-2.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
+          <groupId>net.sf.jung</groupId>
+          <artifactId>jung-samples</artifactId>
+          <version>2.1</version>
+          <scope>system</scope>
+          <systemPath>/opt/titan_designer/jars/legacy/jung-io-2.1.jar</systemPath>
+        </dependency>
+      </dependencies>
+
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-bundle-plugin</artifactId>
+              <version>5.1.3</version>
+              <extensions>true</extensions>
+              <configuration>
+          <outputDirectory>${bundles.output.dir}</outputDirectory>
+                <instructions>
+                  <Bundle-SymbolicName>edu.uci.ics.jung</Bundle-SymbolicName>
+                  <Bundle-Version>${project.version}</Bundle-Version>
+                  <Bundle-Name>edu.uci.ics.jung</Bundle-Name>
+                  <Export-Package>*</Export-Package>
+                  <Import-Package>*</Import-Package>
+                  <Embed-Dependency>*;scope=system</Embed-Dependency>
+                  <Embed-Transitive>true</Embed-Transitive>
+                  <Bundle-RequiredExecutionEnvironment>JavaSE-11</Bundle-RequiredExecutionEnvironment>
+                </instructions>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
+      </project>
+  - path: /opt/titan_designer/scripts/artifacts.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |  
+      #!/usr/bin/env bash
+      set -euo pipefail
+      trap 'echo "? Error at line $LINENO"' ERR
+
+      JAR_DIR="${1:-.}"
+      TARGET_XML="${2:-artifacts.xml}"
+
+      TMP_APPEND=$(mktemp)
+
+      # --- Generate new artifact entries only ---
+      for f in "${JAR_DIR}"/*.jar; do
+        [ -f "$f" ] || continue
+        fname=$(basename "$f")
+
+        # Extract id and version robustly
+        if [[ "$fname" =~ ^(.+)_([0-9]+\.[0-9]+\.[0-9]+(\.[^.]*)?)\.jar$ ]]; then
+          id="${BASH_REMATCH[1]}"
+          version="${BASH_REMATCH[2]}"
+        else
+          id="${fname%%_*}"
+          version="${fname#${id}_}"
+          version="${version%.jar}"
+        fi
+
+        size=$(stat -c%s "$f")
+        sha256=$(sha256sum "$f" | awk '{print $1}')
+        sha512=$(sha512sum "$f" | awk '{print $1}')
+
+        cat >>"$TMP_APPEND" <<EOF
+          <artifact classifier='osgi.bundle' id='${id}' version='${version}'>
+            <properties size='4'>
+              <property name='artifact.size' value='${size}'/>
+              <property name='download.size' value='${size}'/>
+              <property name='download.checksum.sha-512' value='${sha512}'/>
+              <property name='download.checksum.sha-256' value='${sha256}'/>
+            </properties>
+          </artifact>
+      EOF
+      done
+
+      # --- Merge into existing artifacts.xml ---
+      if [[ -f "$TARGET_XML" ]]; then
+        echo "?? Appending artifact entries to $TARGET_XML ..."
+        
+        # Insert before closing </artifacts>
+        sed -i "/<\/artifacts>/e cat $TMP_APPEND" "$TARGET_XML"
+
+        # --- Update <artifacts size="..."> count ---
+        total=$(grep -c "<artifact " "$TARGET_XML" || true)
+        if [[ $total -gt 0 ]]; then
+          sed -i -E "s/(<artifacts[^>]*size=)['\"][0-9]+['\"]/\1\"$total\"/" "$TARGET_XML"
+          echo "? Updated artifacts count: $total"
+        else
+          echo "?? Could not detect any <artifact> entries to count."
+        fi
+
+      else
+        echo "?? No existing artifacts.xml found — creating a new one."
+        {
+          echo "<?xml version='1.0' encoding='UTF-8'?>"
+          echo "<?artifactRepository version='1.1.0'?>"
+          echo "<repository name='auto-generated-artifacts' type='org.eclipse.equinox.p2.artifact.repository.simpleRepository' version='1'>"
+          echo "  <artifacts size='$(grep -c '<artifact ' "$TMP_APPEND")'>"
+          cat "$TMP_APPEND"
+          echo "  </artifacts>"
+          echo "</repository>"
+        } >"$TARGET_XML"
+      fi
+
+      rm -f "$TMP_APPEND"
+  - path: /opt/titan_designer/scripts/eclipse_collections_content.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |  
+      #!/usr/bin/env bash
+      set -Eeuo pipefail
+      trap 'echo "âŒ Error at line $LINENO"' ERR
+
+
+      BUNDLES_DIR="${1:-/opt/titan_designer/scripts/bundled}"
+      CONTENT_XML="${2:-/opt/titan_designer/scripts/content_bundled/content.xml}"
+
+      TMP_UNIT=$(mktemp)
+      TMP_FINAL=$(mktemp)
+
+      echo "?? Looking for Eclipse Collections bundle in: $BUNDLES_DIR"
+
+      # helper: extract a manifest header block (header + continuation lines)
+      extract_manifest_block() {
+        local manifest="$1"
+        local header="$2"
+        echo "$manifest" | awk -v H="${header}:" '
+          $0 ~ "^"H { print; inblock=1; next }
+          inblock && $0 ~ "^[ \t]" { print; next }
+          { inblock=0 }
+        '
+      }
+      echo "1"
+      # iterate target jars
+      for jar in "$BUNDLES_DIR"/org.eclipse.collections*.jar; do
+        [[ ! -f "$jar" ]] && continue
+
+        echo "2"
+        manifest=$(unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | tr -d '\r' | sed '1s/^\xEF\xBB\xBF//' || true)
+        if [[ -z "$manifest" ]]; then
+          echo "??  No manifest in $(basename "$jar"), skipping."
+          continue
+        fi
+
+        echo "3"
+        echo "3.1 Reading Bundle-Version..."
+        #echo $manifest
+        version=$(echo "$manifest" | grep -m1 "^Bundle-Version" | sed 's/.*: *//; s/\r//' || true)
+        name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+        if [[ -z "${version:-}" ]]; then
+          echo "âš ï¸  Bundle-Version not found, defaulting to 11.1.0"
+          version="11.1.0"
+        else
+          echo "âœ… Found version: $version"
+        fi
+
+        echo "4"
+        vendor=$(echo "$manifest" | awk -F': ' '/^Bundle-Vendor/ {print $2; exit}' | tr -d '\r')
+        [[ -z "$vendor" ]] && vendor="Eclipse Collections"
+        echo "5"
+        bundle_name="Eclipse Collections Main Library"
+        description="Eclipse Collections is a collections framework for Java. It has JDK-compatible List, Set and Map implementations with a rich API and set of utility classes that work with any JDK compatible Collections, Arrays, Maps or Strings. The iteration protocol was inspired by the Smalltalk collection framework."
+        doc_url="https://github.com/eclipse/eclipse-collections/eclipse-collections-api"
+
+        # --- Extract and normalize Export-Package ---
+        # --- Extract and normalize Export-Package ---
+        export_clean=$(echo "$manifest" | awk '
+        BEGIN {collect=0}
+        /^Export-Package:/ {collect=1; sub(/^Export-Package:[ \t]*/, ""); line=$0; next}
+        collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+        collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+        END {print line}
+        ' | tr -d '\r')
+
+        # --- Extract and normalize Import-Package ---
+        import_clean=$(echo "$manifest" | awk '
+        BEGIN {collect=0}
+        /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+        collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+        collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+        END {print line}
+        ' | tr -d '\r')
+        
+        # --- Extract and normalize Import-Package ---
+        import_clean=$(echo "$manifest" | awk '
+        BEGIN {collect=0}
+        /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+        collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+        collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+        END {print line}
+        ' | tr -d '\r')
+
+        # --- Properly join continuation lines and flatten ---
+        import_clean=$(echo "$import_clean" | awk '
+          BEGIN {ORS=""; first=1}
+          /^[ \t]/ {sub(/^[ \t]+/, ""); printf "%s", $0; next}
+          { if (!first) printf "\n"; first=0; printf "%s", $0 }
+        ')
+        import_clean=$(echo "$import_clean" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')
+
+        # --- Split cleanly by commas at top level ---
+        IFS=',' read -r -a export_items <<< "$export_clean"
+        # --- Split on commas not inside quotes ---
+        mapfile -t import_items < <(echo "$import_clean" | \
+          awk -v RS=',' '
+            {
+              count += gsub(/"/, "\"")
+              buf = buf $0
+              if (count % 2 == 0) {
+                print buf
+                buf = ""
+              } else {
+                buf = buf ","
+              }
+            }
+          ')
+
+
+        declare -A seen=()
+        declare -a EXPORT_PKG_LINES=()
+        for p in "${export_items[@]}"; do
+            # Remove leading/trailing spaces
+            p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//')
+
+            # Remove anything after ;uses:= or other attributes
+            p_trim=$(echo "$p_trim" | sed 's/;uses:=.*//; s/;version=".*"//')
+
+            # Remove quotes
+            p_trim=${p_trim//\"/}
+
+            # Skip empty
+            [[ -z "$p_trim" ]] && continue
+
+            # Deduplicate
+            if [[ -z "${seen[$p_trim]:-}" ]]; then
+                seen[$p_trim]=1
+                EXPORT_PKG_LINES+=("$p_trim|$version")
+            fi
+        done
+
+        declare -A seen_imports=()
+        declare -a CLEAN_IMPORTS=()
+        for p in "${import_items[@]}"; do
+            # Trim whitespace
+            p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//')
+            [[ -z "$p_trim" ]] && continue
+
+            # Skip malformed entries
+            if [[ ! "$p_trim" =~ ^[a-zA-Z0-9_.]+ ]]; then
+                continue
+            fi
+
+            # Extract package name and version
+            ipkg=$(echo "$p_trim" | sed 's/;.*//')
+            version_match=$(echo "$p_trim" | grep -o 'version="[^\"]*"') || true
+            if [[ -n "$version_match" ]]; then
+                irange=${version_match#version=\"}
+                irange=${irange%\"}
+            else
+                irange="0.0.0"
+            fi
+
+            # Deduplicate
+            if [[ -z "${seen_imports[$ipkg]:-}" ]]; then
+                seen_imports[$ipkg]=1
+                CLEAN_IMPORTS+=("$ipkg|$irange")
+            fi
+        done
+
+
+
+        echo "Detected Exports (${#EXPORT_PKG_LINES[@]}):"
+        printf '  %s\n' "${EXPORT_PKG_LINES[@]}"
+        echo "Detected Imports (${#CLEAN_IMPORTS[@]}):"
+        printf '  %s\n' "${CLEAN_IMPORTS[@]}"
+        echo "10"
+
+        num_exports=${#EXPORT_PKG_LINES[@]}
+        num_imports=${#CLEAN_IMPORTS[@]}
+        echo "11"
+
+        provides_count=$(( num_exports + 5 ))
+        requires_count=$(( num_imports + 1 ))  
+        echo "? Adding unit for $name (export pkgs: $num_exports, import pkgs: $num_imports)"
+        {
+          echo "  <unit id=\"$name\" version=\"$version\" singleton=\"false\" generation=\"2\">"
+          echo "    <update id=\"$name\" range=\"[0.0.0,$version)\" severity=\"0\"/>"
+          echo "    <properties size=\"6\">"
+          echo "      <property name=\"df_LT.bundleVendor\" value=\"$vendor\"/>"
+          echo "      <property name=\"df_LT.bundleName\" value=\"$bundle_name\"/>"
+          echo "      <property name=\"org.eclipse.equinox.p2.name\" value=\"%bundleName\"/>"
+          echo "      <property name=\"org.eclipse.equinox.p2.description\" value=\"$description\"/>"
+          echo "      <property name=\"org.eclipse.equinox.p2.provider\" value=\"%bundleVendor\"/>"
+          echo "      <property name=\"org.eclipse.equinox.p2.doc.url\" value=\"$doc_url\"/>"
+          echo "    </properties>"
+          echo "    <provides size=\"$provides_count\">"
+          echo "      <provided namespace='org.eclipse.equinox.p2.iu' name='$name' version='$version'/>"
+          echo "      <provided namespace='osgi.bundle' name='$name' version='$version'/>"
+          for entry in "${EXPORT_PKG_LINES[@]}"; do
+            pkg=${entry%%|*}
+            pv=${entry#*|}
+            echo "      <provided namespace='java.package' name='$pkg' version='$pv'/>"
+          done
+          echo "      <provided namespace='osgi.identity' name='$name' version='$version'>"
+          echo "        <properties size='1'>"
+          echo "          <property name='type' value='osgi.bundle'/>"
+          echo "        </properties>"
+          echo "      </provided>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.localization' name='df_LT' version='1.0.0'/>"
+          echo "    </provides>"
+          echo "    <requires size=\"$requires_count\">"
+          # Use CLEAN_IMPORTS in your loop:
+          for entry in "${CLEAN_IMPORTS[@]}"; do
+              ipkg=${entry%%|*}
+              irange=${entry#*|}
+              echo "      <required namespace='java.package' name='$ipkg' range='$irange' optional='true' greedy='false'/>"
+          done
+          echo "      <requiredProperties namespace='osgi.ee' match='(&amp;(osgi.ee=JavaSE)(version=11))'>"
+          echo "        <description>$name</description>"
+          echo "      </requiredProperties>"
+          echo "    </requires>"
+          echo "    <artifacts size='1'>"
+          echo "      <artifact classifier='osgi.bundle' id='$name' version='$version'/>"
+          echo "    </artifacts>"
+          echo "    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>"
+          echo "    <touchpointData size='1'>"
+          echo "      <instructions size='1'>"
+          echo "        <instruction key='manifest'>Bundle-SymbolicName: $name&#xA;Bundle-Version: $version&#xA;</instruction>"
+          echo "      </instructions>"
+          echo "    </touchpointData>"
+          echo "  </unit>"
+        } >> "$TMP_UNIT"
+
+        unset EXPORT_PKG_LINES
+        unset IMPORT_PKG_LINES
+      done
+
+      # 1ï¸âƒ£ Count units
+      unit_count_new=$(grep -c '<unit ' "$TMP_UNIT")        # new units
+      unit_count_orig=$(grep -c '<unit ' "$CONTENT_XML")    # existing units
+      unit_count_total=$((unit_count_orig + unit_count_new))
+
+      # 2ï¸âƒ£ Append TMP_UNIT before closing </units> with a tab for indentation
+      if grep -q '</units>' "$CONTENT_XML"; then
+        # create a temp file with indented units
+        TMP_UNIT_INDENT=$(mktemp)
+        sed 's/^/\t/' "$TMP_UNIT" > "$TMP_UNIT_INDENT"
+
+        # insert indented units before </units>
+        sed -i "/<\/units>/e cat $TMP_UNIT_INDENT" "$CONTENT_XML"
+
+        rm -f "$TMP_UNIT_INDENT"
+      else
+        # fallback: append at the end
+        sed -i -e "\$r $TMP_UNIT" "$CONTENT_XML"
+      fi
+      # 3ï¸âƒ£ Update <units size=""> attribute (handles single or double quotes)
+      if grep -q '<units ' "$CONTENT_XML"; then
+        sed -i -E "s/(<units[^>]*size=)['\"][0-9]+['\"]/\\1'${unit_count_total}'/" "$CONTENT_XML"
+        echo "?? Updated <units size=\"$unit_count_total\">"
+      else
+        echo "?? No <units> tag found â€” skipped size update."
+      fi
+
+      # 4ï¸âƒ£ Cleanup
+      rm -f "$TMP_UNIT"
+
+      echo "? content.xml updated with Eclipse Collections unit(s) and refreshed <units size> count."
+  - path: /opt/titan_designer/scripts/apache_poi_content.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |  
+      #!/usr/bin/env bash
+      set -Eeuo pipefail
+      trap 'echo "? Error at line $LINENO"' ERR
+
+      BUNDLES_DIR="${1:-/opt/titan_designer/scripts/bundled}"
+      CONTENT_XML="${2:-/opt/titan_designer/scripts/content_bundled/content.xml}"
+
+      TMP_UNIT=$(mktemp)
+
+      echo "?? Looking for Apache POI bundle in: $BUNDLES_DIR"
+
+      for jar in "$BUNDLES_DIR"/org.apache.poi*.jar; do
+          [[ ! -f "$jar" ]] && continue
+
+          manifest=$(unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | tr -d '\r' || true)
+          [[ -z "$manifest" ]] && { echo "? No manifest in $(basename "$jar"), skipping."; continue; }
+
+          # --- Bundle metadata ---
+          name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//')
+          version=$(echo "$manifest" | grep -m1 "^Bundle-Version" | sed 's/.*: *//')
+          vendor=$(echo "$manifest" | awk -F': ' '/^Bundle-Vendor/ {print $2; exit}')
+          vendor=${vendor:-"Eclipse Orbit"}
+          bundle_name="Apache POI"
+          description="Apache POI provides libraries for reading and writing Microsoft Office formats in Java."
+          doc_url="https://poi.apache.org/"
+
+          # --- Exported packages ---
+          export_clean=$(echo "$manifest" | awk '
+              BEGIN {collect=0}
+              /^Export-Package:/ {collect=1; sub(/^Export-Package:[ \t]*/, ""); line=$0; next}
+              collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+              collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+              END {print line}
+          ' | tr -d '\r')
+
+          IFS=',' read -r -a export_items <<< "$export_clean"
+
+          declare -A seen_exports
+          EXPORT_PKG_LINES=()
+          for p in "${export_items[@]}"; do
+              p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//; s/;.*//; s/\"//g')
+              [[ -z "$p_trim" ]] && continue
+              [[ -n "${seen_exports[$p_trim]:-}" ]] && continue
+              seen_exports[$p_trim]=1
+              EXPORT_PKG_LINES+=("$p_trim|$version")
+          done
+
+          # --- Imported packages ---
+          import_clean=$(echo "$manifest" | awk '
+              BEGIN {collect=0}
+              /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+              collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+              collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+              END {print line}
+          ' | tr -d '\r' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')
+
+          mapfile -t import_items < <(echo "$import_clean" | awk -v RS=',' '{gsub(/^ +| +$/,""); print}')
+
+          # --- Allowed packages list ---
+          ALLOWED_IMPORTS=(
+              "org.apache.commons.codec.digest"
+          )
+
+          # --- Imported packages ---
+          declare -A seen_imports
+          CLEAN_IMPORTS=()
+          for p in "${import_items[@]}"; do
+              p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//')
+              [[ -z "$p_trim" ]] && continue
+              ipkg=$(echo "$p_trim" | sed 's/;.*//')
+              [[ -n "${seen_imports[$ipkg]:-}" ]] && continue
+              seen_imports[$ipkg]=1
+
+              # --- ALLOWED LIST FILTER ---
+              allowed=false
+              for allowed_pkg in "${ALLOWED_IMPORTS[@]}"; do
+                  [[ "$ipkg" == "$allowed_pkg" ]] && allowed=true && break
+              done
+              $allowed || continue
+
+              version_match=$(echo "$p_trim" | grep -o 'version="[^\"]*"') || true
+              irange=${version_match#version=\"}
+              irange=${irange%\"}
+              [[ -z "$irange" ]] && irange="0.0.0"
+
+              CLEAN_IMPORTS+=("$ipkg|$irange")
+          done
+
+          # --- Counts ---
+          num_exports=${#EXPORT_PKG_LINES[@]}
+          num_imports=${#CLEAN_IMPORTS[@]}
+          provides_count=$((num_exports + 3))
+          requires_count=$((num_imports + 1))
+
+          echo "Detected Exports (${#EXPORT_PKG_LINES[@]}):"
+          printf '  %s\n' "${EXPORT_PKG_LINES[@]}"
+          echo "Detected Imports (${#CLEAN_IMPORTS[@]}):"
+          printf '  %s\n' "${CLEAN_IMPORTS[@]}"   
+          #echo "Detected Exports ($num_exports), Imports ($num_imports) for $name"
+
+          # --- Generate <unit> XML ---
+          {
+          echo -e "  <unit id='$name' version='$version' singleton='false' generation='2'>"
+          echo "    <update id='$name' range='[0.0.0,$version)' severity='0'/>"
+          echo "    <properties size='6'>"
+          echo "      <property name='df_LT.bundleVendor' value='$vendor'/>"
+          echo "      <property name='df_LT.bundleName' value='$bundle_name'/>"
+          echo "      <property name='org.eclipse.equinox.p2.name' value='%bundleName'/>"
+          echo "      <property name='org.eclipse.equinox.p2.description' value='$description'/>"
+          echo "      <property name='org.eclipse.equinox.p2.provider' value='%bundleVendor'/>"
+          echo "      <property name='org.eclipse.equinox.p2.doc.url' value='$doc_url'/>"
+          echo "    </properties>"
+          echo "    <provides size='$provides_count'>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.iu' name='$name' version='$version'/>"
+          echo "      <provided namespace='osgi.bundle' name='$name' version='$version'/>"
+          for entry in "${EXPORT_PKG_LINES[@]}"; do
+              pkg=${entry%%|*}; pv=${entry#*|} 
+              echo "      <provided namespace='java.package' name='$pkg' version='$pv'/>"
+          done
+          echo "      <provided namespace='osgi.identity' name='$name' version='$version'>"
+          echo "        <properties size='1'>"
+          echo "          <property name='type' value='osgi.bundle'/>"
+          echo "        </properties>"
+          echo "      </provided>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>"
+          echo "    </provides>"
+          echo "    <requires size='$requires_count'>"
+          for entry in "${CLEAN_IMPORTS[@]}"; do
+              ipkg=${entry%%|*}; irange=${entry#*|}
+              echo "      <required namespace='java.package' name='$ipkg' range='$irange'/>"
+          done
+          echo "      <requiredProperties namespace='osgi.ee' match='(&amp;(osgi.ee=JavaSE)(version=1.5))'>"
+          echo "        <description>$name</description>"
+          echo "      </requiredProperties>"
+          echo "    </requires>"
+          echo "    <artifacts size='1'>"
+          echo "      <artifact classifier='osgi.bundle' id='$name' version='$version'/>"
+          echo "    </artifacts>"
+          echo "    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>"
+          echo "    <touchpointData size='1'>"
+          echo "      <instructions size='1'>"
+          echo "        <instruction key='manifest'>Bundle-SymbolicName: $name&#xA;Bundle-Version: $version&#xA;</instruction>"
+          echo "      </instructions>"
+          echo "    </touchpointData>"
+          echo "  </unit>"
+          } >> "$TMP_UNIT"
+      done
+
+      # 1ï¸âƒ£ Count units
+      unit_count_new=$(grep -c '<unit ' "$TMP_UNIT")        # new units
+      unit_count_orig=$(grep -c '<unit ' "$CONTENT_XML")    # existing units
+      unit_count_total=$((unit_count_orig + unit_count_new))
+
+      # 2ï¸âƒ£ Append TMP_UNIT before closing </units> with a tab for indentation
+      if grep -q '</units>' "$CONTENT_XML"; then
+        # create a temp file with indented units
+        TMP_UNIT_INDENT=$(mktemp)
+        sed 's/^/\t/' "$TMP_UNIT" > "$TMP_UNIT_INDENT"
+
+        # insert indented units before </units>
+        sed -i "/<\/units>/e cat $TMP_UNIT_INDENT" "$CONTENT_XML"
+
+        rm -f "$TMP_UNIT_INDENT"
+      else
+        # fallback: append at the end
+        sed -i -e "\$r $TMP_UNIT" "$CONTENT_XML"
+      fi
+      # 3ï¸âƒ£ Update <units size=""> attribute (handles single or double quotes)
+      if grep -q '<units ' "$CONTENT_XML"; then
+        sed -i -E "s/(<units[^>]*size=)['\"][0-9]+['\"]/\\1'${unit_count_total}'/" "$CONTENT_XML"
+        echo "?? Updated <units size=\"$unit_count_total\">"
+      else
+        echo "?? No <units> tag found â€” skipped size update."
+      fi
+
+      # 4ï¸âƒ£ Cleanup
+      rm -f "$TMP_UNIT"
+      echo "?? content.xml updated with Apache POI unit(s)."
+  - path: /opt/titan_designer/scripts/jung_content.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |  
+      #!/usr/bin/env bash
+      set -Eeuo pipefail
+      trap 'echo "âŒ Error at line $LINENO"' ERR
+
+
+      BUNDLES_DIR="${1:-/opt/titan_designer/scripts/bundled}"
+      CONTENT_XML="${2:-/opt/titan_designer/scripts/content_bundled/content.xml}"
+
+      TMP_UNIT=$(mktemp)
+      TMP_FINAL=$(mktemp)
+
+      echo "?? Looking for JUNG bundle in: $BUNDLES_DIR"
+
+      # helper: extract a manifest header block (header + continuation lines)
+      extract_manifest_block() {
+        local manifest="$1"
+        local header="$2"
+        echo "$manifest" | awk -v H="${header}:" '
+          $0 ~ "^"H { print; inblock=1; next }
+          inblock && $0 ~ "^[ \t]" { print; next }
+          { inblock=0 }
+        '
+      }
+      echo "1"
+      # iterate target jars
+      for jar in "$BUNDLES_DIR"/edu.uci.ics.jung*.jar; do
+        [[ ! -f "$jar" ]] && continue
+
+        echo "2"
+        manifest=$(unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | tr -d '\r' | sed '1s/^\xEF\xBB\xBF//' || true)
+        if [[ -z "$manifest" ]]; then
+          echo "??  No manifest in $(basename "$jar"), skipping."
+          continue
+        fi
+
+        echo "3"
+        echo "3.1 Reading Bundle-Version..."
+        #echo $manifest
+        version=$(echo "$manifest" | grep -m1 "^Bundle-Version" | sed 's/.*: *//; s/\r//' || true)
+        name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+        if [[ -z "${version:-}" ]]; then
+          echo "âš ï¸  Bundle-Version not found, defaulting to 11.1.0"
+          version="11.1.0"
+        else
+          echo "âœ… Found version: $version"
+        fi
+
+        echo "4"
+        vendor=$(echo "$manifest" | awk -F': ' '/^Bundle-Vendor/ {print $2; exit}' | tr -d '\r')
+        [[ -z "$vendor" ]] && vendor="Eclipse Collections"
+        echo "5"
+        bundle_name="edu.uci.ics.jung"
+        description="JUNG is a software library that provides a common and extendible languagefor the modeling, analysis, and visualization of data that can be represented as a graph or network.Its basis in Java allows JUNG-based applications to make use of the extensive built-in capabilities of the Java API, as well as those of other existing third-party Java libraries."
+        doc_url=""
+
+        # --- Extract and normalize Export-Package ---
+        # --- Extract and normalize Export-Package ---
+        export_clean=$(echo "$manifest" | awk '
+        BEGIN {collect=0}
+        /^Export-Package:/ {collect=1; sub(/^Export-Package:[ \t]*/, ""); line=$0; next}
+        collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+        collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+        END {print line}
+        ' | tr -d '\r')
+
+        # --- Split cleanly by commas at top level ---
+        IFS=',' read -r -a export_items <<< "$export_clean"
+        # --- Split on commas not inside quotes ---
+
+        declare -A seen=()
+        declare -a EXPORT_PKG_LINES=()
+        for p in "${export_items[@]}"; do
+            # Remove leading/trailing spaces
+            p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//')
+
+            # Remove anything after ;uses:= or other attributes
+            p_trim=$(echo "$p_trim" | sed 's/;uses:=.*//; s/;version=".*"//')
+
+            # Remove quotes
+            p_trim=${p_trim//\"/}
+
+            # Skip empty
+            [[ -z "$p_trim" ]] && continue
+
+            # Deduplicate
+            if [[ -z "${seen[$p_trim]:-}" ]]; then
+                seen[$p_trim]=1
+                EXPORT_PKG_LINES+=("$p_trim|$version")
+            fi
+        done
+
+        echo "Detected Exports (${#EXPORT_PKG_LINES[@]}):"
+        printf '  %s\n' "${EXPORT_PKG_LINES[@]}"
+        echo "10"
+
+        num_exports=${#EXPORT_PKG_LINES[@]}
+        echo "11"
+
+        provides_count=$(( num_exports + 5 ))
+        echo "? Adding unit for $name (export pkgs: $num_exports"
+        {
+          echo "  <unit id=\"$name\" version=\"$version\" singleton=\"false\" generation=\"2\">"
+          echo "    <update id=\"$name\" range=\"[0.0.0,$version)\" severity=\"0\"/>"
+          echo "    <properties size=\"3\">"
+          echo "      <property name=\"org.eclipse.equinox.p2.name\" value=\"%bundleName\"/>"
+          echo "      <property name=\"org.eclipse.equinox.p2.description\" value=\"$description\"/>"
+          echo "      <property name='org.eclipse.equinox.p2.doc.url' value='http://jrtom.github.io/jung/javadoc/index.html'/>"
+          echo "    </properties>"
+          echo "    <provides size=\"$provides_count\">"
+          echo "      <provided namespace='org.eclipse.equinox.p2.iu' name='$name' version='$version'/>"
+          echo "      <provided namespace='osgi.bundle' name='$name' version='$version'/>"
+          for entry in "${EXPORT_PKG_LINES[@]}"; do
+            pkg=${entry%%|*}
+            pv=${entry#*|}
+            echo "      <provided namespace='java.package' name='$pkg' version='$pv'/>"
+          done
+          echo "      <provided namespace='osgi.identity' name='$name' version='$version'>"
+          echo "        <properties size='1'>"
+          echo "          <property name='type' value='osgi.bundle'/>"
+          echo "        </properties>"
+          echo "      </provided>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>"
+          echo "    </provides>"
+          echo "    <requires size=\"3\">"
+          echo "    <required namespace='osgi.bundle' name='com.google.guava' range='21.0.0'/>"
+          echo "    <required namespace='java.package' name='com.google.common.base' range='0.0.0'/>"
+          echo "    <requiredProperties namespace='osgi.ee' match='(&amp;(osgi.ee=JavaSE)(version=1.8))'>"
+          echo "    <description>$name</description>"
+          echo "      </requiredProperties>"
+          echo "    </requires>"
+          echo "    <artifacts size='1'>"
+          echo "      <artifact classifier='osgi.bundle' id='$name' version='$version'/>"
+          echo "    </artifacts>"
+          echo "    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>"
+          echo "    <touchpointData size='1'>"
+          echo "      <instructions size='1'>"
+          echo "        <instruction key='manifest'>Bundle-SymbolicName: $name&#xA;Bundle-Version: $version&#xA;</instruction>"
+          echo "      </instructions>"
+          echo "    </touchpointData>"
+          echo "  </unit>"
+        } >> "$TMP_UNIT"
+
+        unset EXPORT_PKG_LINES
+        unset IMPORT_PKG_LINES
+      done
+
+      # 1ï¸âƒ£ Count units
+      unit_count_new=$(grep -c '<unit ' "$TMP_UNIT")        # new units
+      unit_count_orig=$(grep -c '<unit ' "$CONTENT_XML")    # existing units
+      unit_count_total=$((unit_count_orig + unit_count_new))
+
+      # 2ï¸âƒ£ Append TMP_UNIT before closing </units> with a tab for indentation
+      if grep -q '</units>' "$CONTENT_XML"; then
+        # create a temp file with indented units
+        TMP_UNIT_INDENT=$(mktemp)
+        sed 's/^/\t/' "$TMP_UNIT" > "$TMP_UNIT_INDENT"
+
+        # insert indented units before </units>
+        sed -i "/<\/units>/e cat $TMP_UNIT_INDENT" "$CONTENT_XML"
+
+        rm -f "$TMP_UNIT_INDENT"
+      else
+        # fallback: append at the end
+        sed -i -e "\$r $TMP_UNIT" "$CONTENT_XML"
+      fi
+      # 3ï¸âƒ£ Update <units size=""> attribute (handles single or double quotes)
+      if grep -q '<units ' "$CONTENT_XML"; then
+        sed -i -E "s/(<units[^>]*size=)['\"][0-9]+['\"]/\\1'${unit_count_total}'/" "$CONTENT_XML"
+        echo "?? Updated <units size=\"$unit_count_total\">"
+      else
+        echo "?? No <units> tag found â€” skipped size update."
+      fi
+
+      # 4ï¸âƒ£ Cleanup
+      rm -f "$TMP_UNIT"
+
+      echo "? content.xml updated with JUNG unit(s) and refreshed <units size> count."
+  - path: /opt/titan_designer/scripts/guava_content.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |     
+      #!/usr/bin/env bash
+      set -Eeuo pipefail
+      trap 'echo "? Error at line $LINENO"' ERR
+
+      BUNDLES_DIR="${1:-/opt/titan_designer/scripts/bundled}"
+      CONTENT_XML="${2:-/opt/titan_designer/scripts/content_bundled/content.xml}"
+      TMP_UNIT=$(mktemp)
+
+      # Packages that must have optional="true" greedy="false"
+      OPTIONAL_PACKAGES=("com.google.errorprone.annotations.concurrent" \
+                        "com.google.thirdparty.publicsuffix" \
+                        "javax.annotation" \
+                        "javax.crypto" \
+                        "javax.crypto.spec" \
+                        "sun.misc")
+
+      for jar in "$BUNDLES_DIR"/com.google.guava*.jar; do
+          [[ ! -f "$jar" ]] && continue
+          manifest=$(unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | tr -d '\r' || true)
+          [[ -z "$manifest" ]] && { echo "? No manifest in $(basename "$jar"), skipping."; continue; }
+
+          # --- Bundle metadata ---
+          #name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//')
+          #version=$(echo "$manifest" | grep -m1 "^Bundle-Version" | sed 's/.*: *//')
+          version=$(echo "$manifest" | grep -m1 "^Bundle-Version"   | sed 's/.*: *//; s/\r//' || true)
+          name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+          # Try to read vendor and name directly from manifest (can contain %bundleVendor etc.)
+          vendor=$(echo "$manifest" | grep -m1 "^Bundle-Vendor" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+          bundle_name=$(echo "$manifest" | grep -m1 "^Bundle-Name" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+
+          # Default fallbacks if placeholders or missing
+          [[ -z "$vendor" || "$vendor" == "%bundleVendor" ]] && vendor="Eclipse Orbit"
+          [[ -z "$bundle_name" || "$bundle_name" == "%bundleName" ]] && bundle_name="Guava: Google Core Libraries for Java"
+
+              # Optional fields
+          description=$(awk '
+          BEGIN { desc = "" ; found = 0 }
+          /^Bundle-Description:/ {
+              found = 1
+              sub(/^Bundle-Description:[ \t]*/, "")
+              desc = $0
+              next
+          }
+          found && /^[ \t]/ {
+              sub(/^[ \t]+/, "")
+              desc = desc $0
+              next
+          }
+          found && /^[A-Za-z0-9\-]+:/ { found = 0 }
+          END { print desc }
+          ' <<<"$manifest" | tr -d '\r' | tr '\n' ' ')
+
+          [[ -z "$description" ]] && description="Guava is a suite of core and expanded libraries that include utility classes, google&apos;s collections, io classes, and much more. Guava has only one code dependency - javax.annotation, per the JSR-305 spec."
+
+          # --- Helper: Escape XML special characters safely ---
+          xml_escape() {
+          local s="$1"
+          s=${s//&/&amp;}
+          s=${s//</&lt;}
+          s=${s//>/&gt;}
+          s=${s//\"/&quot;}
+          s=${s//\'/&apos;}
+          printf '%s' "$s"
+          }
+          safe_description=$(xml_escape "$description")
+
+          doc_url=$(echo "$manifest" | awk '/^Bundle-DocURL:/,/^[A-Za-z\-]+:/' | sed '1s/.*: *//; $d' | tr -d '\r' | tr '\n' ' ')
+          doc_url=$(echo "$doc_url" | xargs)  # trim whitespace
+          [[ -z "$doc_url" ]] && doc_url="https://github.com/google/guava/"
+
+          # --- Exported packages (safe split, handles quoted commas) ---
+          # --- Parse Export-Package safely, ignoring 'uses:' commas ---
+          # export_clean is the raw Export-Package line from manifest
+          # Remove uses= completely
+          # --- Exported packages (ignore uses:, handle version per package) ---
+          CLEAN_EXPORTS=()
+          declare -A seen_exports
+
+          # Extract Export-Package line (handle multiline)
+          export_clean=$(echo "$manifest" | awk '
+              BEGIN {collect=0}
+              /^Export-Package:/ {collect=1; sub(/^Export-Package:[ \t]*/, ""); line=$0; next}
+              collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+              collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+              END {print line}
+          ' | tr -d '\r' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')
+
+          # Remove all uses:= parameters
+          export_clean=$(echo "$export_clean" | sed -E 's/;[[:space:]]*uses:="[^"]*"//g')
+
+          # Split packages by commas outside quotes
+          IFS=',' read -ra packages <<< "$export_clean"
+
+          for pkg_entry in "${packages[@]}"; do
+              # Trim spaces
+              pkg_entry="${pkg_entry#"${pkg_entry%%[![:space:]]*}"}"
+              pkg_entry="${pkg_entry%"${pkg_entry##*[![:space:]]}"}"
+              [[ -z "$pkg_entry" ]] && continue
+
+              # Package name is before first semicolon
+              pkg_name="${pkg_entry%%;*}"
+              pkg_name="${pkg_name#"${pkg_name%%[![:space:]]*}"}"
+              pkg_name="${pkg_name%"${pkg_name##*[![:space:]]}"}"
+              [[ -z "$pkg_name" ]] && continue
+
+              # Version if exists, else fallback to bundle version
+              pkg_version=$(echo "$pkg_entry" | grep -o 'version="[0-9A-Za-z\.\-]*"' || true)
+              pkg_version=${pkg_version#version=\"}; pkg_version=${pkg_version%\"}
+              [[ -z "$pkg_version" ]] && pkg_version="$version"
+
+              # Avoid duplicates
+              [[ -n "${seen_exports[$pkg_name]:-}" ]] && continue
+              seen_exports[$pkg_name]=1
+
+              CLEAN_EXPORTS+=("$pkg_name|$pkg_version")
+          done
+
+
+
+          # --- Extract and normalize Import-Package ---
+          import_clean=$(echo "$manifest" | awk '
+          BEGIN {collect=0}
+          /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+          collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+          collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+          END {print line}
+          ' | tr -d '\r')
+          
+          # --- Extract and normalize Import-Package ---
+          import_clean=$(echo "$manifest" | awk '
+          BEGIN {collect=0}
+          /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+          collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+          collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+          END {print line}
+          ' | tr -d '\r')
+
+          # --- Properly join continuation lines and flatten ---
+          import_clean=$(echo "$import_clean" | awk '
+              BEGIN {ORS=""; first=1}
+              /^[ \t]/ {sub(/^[ \t]+/, ""); printf "%s", $0; next}
+              { if (!first) printf "\n"; first=0; printf "%s", $0 }
+          ')
+          import_clean=$(echo "$import_clean" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')
+
+          mapfile -t import_items < <(echo "$import_clean" | \
+              awk -v RS=',' '
+              {
+                  count += gsub(/"/, "\"")
+                  buf = buf $0
+                  if (count % 2 == 0) {
+                  print buf
+                  buf = ""
+                  } else {
+                  buf = buf ","
+                  }
+              }
+              ')
+          declare -A seen_imports=()
+          declare -a CLEAN_IMPORTS=()
+          for p in "${import_items[@]}"; do
+              # Trim whitespace
+              p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//')
+              [[ -z "$p_trim" ]] && continue
+
+              # Skip malformed entries
+              if [[ ! "$p_trim" =~ ^[a-zA-Z0-9_.]+ ]]; then
+                  continue
+              fi
+
+              # Extract package name and version
+              ipkg=$(echo "$p_trim" | sed 's/;.*//')
+              version_match=$(echo "$p_trim" | grep -o 'version="[^\"]*"') || true
+              if [[ -n "$version_match" ]]; then
+                  irange=${version_match#version=\"}
+                  irange=${irange%\"}
+              else
+                  irange="0.0.0"
+              fi
+
+
+              # Determine optional/greedy only if resolution:=optional exists
+              if [[ "$p_trim" =~ resolution:=optional ]]; then
+                  optional="true"
+                  greedy="false"
+              else
+                  optional=""
+                  greedy=""
+              fi
+
+              # Deduplicate
+              if [[ -z "${seen_imports[$ipkg]:-}" ]]; then
+                  seen_imports[$ipkg]=1
+                  CLEAN_IMPORTS+=("$ipkg|$irange|$optional|$greedy")
+              fi
+          done
+
+
+          # --- Generate <unit> XML ---
+          num_exports=${#CLEAN_EXPORTS[@]}
+          num_imports=${#CLEAN_IMPORTS[@]}
+          provides_count=$((num_exports + 3))
+          requires_count=$((num_imports + 1))
+
+          {
+          echo -e "  <unit id='$name' version='$version' singleton='false' generation='2'>"
+          echo "    <update id='$name' range='[0.0.0,$version)' severity='0'/>"
+          echo "    <properties size='6'>"
+          echo "      <property name='df_LT.bundleVendor' value='$vendor'/>"
+          echo "      <property name='df_LT.bundleName' value='$bundle_name'/>"
+          echo "      <property name='org.eclipse.equinox.p2.name' value='%bundleName'/>"
+          echo "      <property name='org.eclipse.equinox.p2.description' value=\"$safe_description\"/>"
+          echo "      <property name='org.eclipse.equinox.p2.provider' value='%bundleVendor'/>"
+          echo "      <property name='org.eclipse.equinox.p2.doc.url' value='$doc_url'/>"
+          echo "    </properties>"
+          echo "    <provides size='$provides_count'>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.iu' name='$name' version='$version'/>"
+          echo "      <provided namespace='osgi.bundle' name='$name' version='$version'/>"
+          for entry in "${CLEAN_EXPORTS[@]}"; do
+              pkg=${entry%%|*}; pv=${entry#*|} 
+              echo "      <provided namespace='java.package' name='$pkg' version='$pv'/>"
+          done
+          echo "      <provided namespace='osgi.identity' name='$name' version='$version'>"
+          echo "        <properties size='1'>"
+          echo "          <property name='type' value='osgi.bundle'/>"
+          echo "        </properties>"
+          echo "      </provided>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.localization' name='df_LT' version='1.0.0'/>"
+          echo "    </provides>"
+          echo "    <requires size='$requires_count'>"
+          for entry in "${CLEAN_IMPORTS[@]}"; do
+              IFS='|' read -r ipkg irange optional greedy <<< "$entry"
+              if [[ -n "$optional" ]]; then
+                  echo "      <required namespace='java.package' name='$ipkg' range='$irange' optional='$optional' greedy='$greedy'/>"
+              else
+                  echo "      <required namespace='java.package' name='$ipkg' range='$irange'/>"
+              fi
+          done
+          echo "      <requiredProperties namespace='osgi.ee' match='(&amp;(osgi.ee=JavaSE)(version=1.8))'>"
+          echo "        <description>$name</description>"
+          echo "      </requiredProperties>"
+          echo "    </requires>"
+          echo "    <artifacts size='1'>"
+          echo "      <artifact classifier='osgi.bundle' id='$name' version='$version'/>"
+          echo "    </artifacts>"
+          echo "    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>"
+          echo "    <touchpointData size='1'>"
+          echo "      <instructions size='1'>"
+          echo "        <instruction key='manifest'>Bundle-SymbolicName: $name&#xA;Bundle-Version: $version&#xA;</instruction>"
+          echo "      </instructions>"
+          echo "    </touchpointData>"
+          echo "  </unit>"
+          } >> "$TMP_UNIT"
+      done
+
+
+      # 1ï¸âƒ£ Count units
+      unit_count_new=$(grep -c '<unit ' "$TMP_UNIT")        # new units
+      unit_count_orig=$(grep -c '<unit ' "$CONTENT_XML")    # existing units
+      unit_count_total=$((unit_count_orig + unit_count_new))
+
+      # 2ï¸âƒ£ Append TMP_UNIT before closing </units> with a tab for indentation
+      if grep -q '</units>' "$CONTENT_XML"; then
+        # create a temp file with indented units
+        TMP_UNIT_INDENT=$(mktemp)
+        sed 's/^/\t/' "$TMP_UNIT" > "$TMP_UNIT_INDENT"
+
+        # insert indented units before </units>
+        sed -i "/<\/units>/e cat $TMP_UNIT_INDENT" "$CONTENT_XML"
+
+        rm -f "$TMP_UNIT_INDENT"
+      else
+        # fallback: append at the end
+        sed -i -e "\$r $TMP_UNIT" "$CONTENT_XML"
+      fi
+      # 3ï¸âƒ£ Update <units size=""> attribute (handles single or double quotes)
+      if grep -q '<units ' "$CONTENT_XML"; then
+        sed -i -E "s/(<units[^>]*size=)['\"][0-9]+['\"]/\\1'${unit_count_total}'/" "$CONTENT_XML"
+        echo "?? Updated <units size=\"$unit_count_total\">"
+      else
+        echo "?? No <units> tag found â€” skipped size update."
+      fi
+
+      # 4ï¸âƒ£ Cleanup
+      rm -f "$TMP_UNIT"
+      echo "?? content.xml updated with GUAVA unit(s)."
+  - path: /opt/titan_designer/scripts/antlr_content.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |     
+      #!/usr/bin/env bash
+      set -Eeuo pipefail
+      trap 'echo "? Error at line $LINENO"' ERR
+
+      BUNDLES_DIR="${1:-/opt/titan_designer/scripts/bundled}"
+      CONTENT_XML="${2:-/opt/titan_designer/scripts/content_bundled/content.xml}"
+      TMP_UNIT=$(mktemp)
+
+      for jar in "$BUNDLES_DIR"/org.antlr.runtime*.jar; do
+          [[ ! -f "$jar" ]] && continue
+          manifest=$(unzip -p "$jar" META-INF/MANIFEST.MF 2>/dev/null | tr -d '\r' || true)
+          [[ -z "$manifest" ]] && { echo "? No manifest in $(basename "$jar"), skipping."; continue; }
+
+          # --- Bundle metadata ---
+          #name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//')
+          #version=$(echo "$manifest" | grep -m1 "^Bundle-Version" | sed 's/.*: *//')
+          version=$(echo "$manifest" | grep -m1 "^Bundle-Version"   | sed 's/.*: *//; s/\r//' || true)
+          name=$(echo "$manifest" | grep -m1 "^Bundle-SymbolicName" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+          # Try to read vendor and name directly from manifest (can contain %bundleVendor etc.)
+          vendor=$(echo "$manifest" | grep -m1 "^Bundle-Vendor" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+          bundle_name=$(echo "$manifest" | grep -m1 "^Bundle-Name" | sed 's/.*: *//; s/;.*//; s/\r//' || true)
+
+          # Default fallbacks if placeholders or missing
+          [[ -z "$vendor" || "$vendor" == "%bundleVendor" ]] && vendor="%bundleVendor"
+          [[ -z "$bundle_name" || "$bundle_name" == "%bundleName" ]] && bundle_name="%bundleName"
+
+              # Optional fields
+          description=$(awk '
+          BEGIN { desc = "" ; found = 0 }
+          /^Bundle-Description:/ {
+              found = 1
+              sub(/^Bundle-Description:[ \t]*/, "")
+              desc = $0
+              next
+          }
+          found && /^[ \t]/ {
+              sub(/^[ \t]+/, "")
+              desc = desc $0
+              next
+          }
+          found && /^[A-Za-z0-9\-]+:/ { found = 0 }
+          END { print desc }
+          ' <<<"$manifest" | tr -d '\r' | tr '\n' ' ')
+
+          [[ -z "$description" ]] && description="The ANTLR 4 Runtime"
+
+          doc_url=$(echo "$manifest" | awk '/^Bundle-DocURL:/,/^[A-Za-z\-]+:/' | sed '1s/.*: *//; $d' | tr -d '\r' | tr '\n' ' ')
+          doc_url=$(echo "$doc_url" | xargs)  # trim whitespace
+          [[ -z "$doc_url" ]] && doc_url="http://www.antlr.org"
+
+          # --- Exported packages (safe split, handles quoted commas) ---
+          # --- Parse Export-Package safely, ignoring 'uses:' commas ---
+          # export_clean is the raw Export-Package line from manifest
+          # Remove uses= completely
+          # --- Exported packages (ignore uses:, handle version per package) ---
+          CLEAN_EXPORTS=()
+          declare -A seen_exports
+
+          # Extract Export-Package line (handle multiline)
+          export_clean=$(echo "$manifest" | awk '
+              BEGIN {collect=0}
+              /^Export-Package:/ {collect=1; sub(/^Export-Package:[ \t]*/, ""); line=$0; next}
+              collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+              collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+              END {print line}
+          ' | tr -d '\r' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')
+
+          # Remove all uses:= parameters
+          export_clean=$(echo "$export_clean" | sed -E 's/;[[:space:]]*uses:="[^"]*"//g')
+
+          # Split packages by commas outside quotes
+          IFS=',' read -ra packages <<< "$export_clean"
+
+          for pkg_entry in "${packages[@]}"; do
+              # Trim spaces
+              pkg_entry="${pkg_entry#"${pkg_entry%%[![:space:]]*}"}"
+              pkg_entry="${pkg_entry%"${pkg_entry##*[![:space:]]}"}"
+              [[ -z "$pkg_entry" ]] && continue
+
+              # Package name is before first semicolon
+              pkg_name="${pkg_entry%%;*}"
+              pkg_name="${pkg_name#"${pkg_name%%[![:space:]]*}"}"
+              pkg_name="${pkg_name%"${pkg_name##*[![:space:]]}"}"
+              [[ -z "$pkg_name" ]] && continue
+
+              # Version if exists, else fallback to bundle version
+              pkg_version=$(echo "$pkg_entry" | grep -o 'version="[0-9A-Za-z\.\-]*"' || true)
+              pkg_version=${pkg_version#version=\"}; pkg_version=${pkg_version%\"}
+              [[ -z "$pkg_version" ]] && pkg_version="$version"
+
+              # Avoid duplicates
+              [[ -n "${seen_exports[$pkg_name]:-}" ]] && continue
+              seen_exports[$pkg_name]=1
+
+              CLEAN_EXPORTS+=("$pkg_name|$pkg_version")
+          done
+
+
+
+          # --- Extract and normalize Import-Package ---
+          import_clean=$(echo "$manifest" | awk '
+          BEGIN {collect=0}
+          /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+          collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+          collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+          END {print line}
+          ' | tr -d '\r')
+          
+          # --- Extract and normalize Import-Package ---
+          import_clean=$(echo "$manifest" | awk '
+          BEGIN {collect=0}
+          /^Import-Package:/ {collect=1; sub(/^Import-Package:[ \t]*/, ""); line=$0; next}
+          collect && /^[ \t]/ {sub(/^[ \t]+/, ""); line=line $0; next}
+          collect && /^[A-Za-z0-9\-]+:/ {collect=0}
+          END {print line}
+          ' | tr -d '\r')
+
+          # --- Properly join continuation lines and flatten ---
+          import_clean=$(echo "$import_clean" | awk '
+              BEGIN {ORS=""; first=1}
+              /^[ \t]/ {sub(/^[ \t]+/, ""); printf "%s", $0; next}
+              { if (!first) printf "\n"; first=0; printf "%s", $0 }
+          ')
+          import_clean=$(echo "$import_clean" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')
+
+          mapfile -t import_items < <(echo "$import_clean" | \
+              awk -v RS=',' '
+              {
+                  count += gsub(/"/, "\"")
+                  buf = buf $0
+                  if (count % 2 == 0) {
+                  print buf
+                  buf = ""
+                  } else {
+                  buf = buf ","
+                  }
+              }
+              ')
+          declare -A seen_imports=()
+          declare -a CLEAN_IMPORTS=()
+          for p in "${import_items[@]}"; do
+              # Trim whitespace
+              p_trim=$(echo "$p" | sed 's/^[ \t]*//; s/[ \t]*$//')
+              [[ -z "$p_trim" ]] && continue
+
+              # Skip malformed entries
+              if [[ ! "$p_trim" =~ ^[a-zA-Z0-9_.]+ ]]; then
+                  continue
+              fi
+
+              # Extract package name and version
+              ipkg=$(echo "$p_trim" | sed 's/;.*//')
+              version_match=$(echo "$p_trim" | grep -o 'version="[^\"]*"') || true
+              if [[ -n "$version_match" ]]; then
+                  irange=${version_match#version=\"}
+                  irange=${irange%\"}
+              else
+                  irange="0.0.0"
+              fi
+
+
+              # Determine optional/greedy only if resolution:=optional exists
+              if [[ "$p_trim" =~ resolution:=optional ]]; then
+                  optional="true"
+                  greedy="false"
+              else
+                  optional=""
+                  greedy=""
+              fi
+
+              # Deduplicate
+              if [[ -z "${seen_imports[$ipkg]:-}" ]]; then
+                  seen_imports[$ipkg]=1
+                  CLEAN_IMPORTS+=("$ipkg|$irange|$optional|$greedy")
+              fi
+          done
+
+
+          # --- Generate <unit> XML ---
+          num_exports=${#CLEAN_EXPORTS[@]}
+          num_imports=${#CLEAN_IMPORTS[@]}
+          provides_count=$((num_exports + 5))
+          requires_count=$((num_imports + 1))
+
+          {
+          echo -e "  <unit id='$name' version='$version' singleton='false' generation='2'>"
+          echo "    <update id='$name' range='[0.0.0,$version)' severity='0'/>"
+          echo "    <properties size='6'>"
+          echo "      <property name='df_LT.bundleVendor' value='$vendor'/>"
+          echo "      <property name='df_LT.bundleName' value='$bundle_name'/>"
+          echo "      <property name='org.eclipse.equinox.p2.name' value='%bundleName'/>"
+          echo "      <property name='org.eclipse.equinox.p2.description' value=\"$description\"/>"
+          echo "      <property name='org.eclipse.equinox.p2.provider' value='%bundleVendor'/>"
+          echo "      <property name='org.eclipse.equinox.p2.doc.url' value='$doc_url'/>"
+          echo "    </properties>"
+          echo "    <provides size='$provides_count'>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.iu' name='$name' version='$version'/>"
+          echo "      <provided namespace='osgi.bundle' name='$name' version='$version'/>"
+          for entry in "${CLEAN_EXPORTS[@]}"; do
+              pkg=${entry%%|*}; pv=${entry#*|} 
+              echo "      <provided namespace='java.package' name='$pkg' version='$pv'/>"
+          done
+          echo "      <provided namespace='osgi.identity' name='$name' version='$version'>"
+          echo "        <properties size='1'>"
+          echo "          <property name='type' value='osgi.bundle'/>"
+          echo "        </properties>"
+          echo "      </provided>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.eclipse.type' name='bundle' version='1.0.0'/>"
+          echo "      <provided namespace='org.eclipse.equinox.p2.localization' name='df_LT' version='1.0.0'/>"
+          echo "    </provides>"
+          echo "    <requires size='$requires_count'>"
+          for entry in "${CLEAN_IMPORTS[@]}"; do
+              IFS='|' read -r ipkg irange optional greedy <<< "$entry"
+              if [[ -n "$optional" ]]; then
+                  echo "      <required namespace='java.package' name='$ipkg' range='$irange' optional='$optional' greedy='$greedy'/>"
+              else
+                  echo "      <required namespace='java.package' name='$ipkg' range='$irange'/>"
+              fi
+          done
+          echo "      <requiredProperties namespace='osgi.ee' match='(&amp;(osgi.ee=JavaSE)(version=1.8))'>"
+          echo "        <description>$name</description>"
+          echo "      </requiredProperties>"
+          echo "    </requires>"
+          echo "    <artifacts size='1'>"
+          echo "      <artifact classifier='osgi.bundle' id='$name' version='$version'/>"
+          echo "    </artifacts>"
+          echo "    <touchpoint id='org.eclipse.equinox.p2.osgi' version='1.0.0'/>"
+          echo "    <touchpointData size='1'>"
+          echo "      <instructions size='1'>"
+          echo "        <instruction key='manifest'>Bundle-SymbolicName: $name&#xA;Bundle-Version: $version&#xA;</instruction>"
+          echo "      </instructions>"
+          echo "    </touchpointData>"
+          echo "  </unit>"
+          } >> "$TMP_UNIT"
+      done
+
+
+      # 1ï¸âƒ£ Count units
+      unit_count_new=$(grep -c '<unit ' "$TMP_UNIT")        # new units
+      unit_count_orig=$(grep -c '<unit ' "$CONTENT_XML")    # existing units
+      unit_count_total=$((unit_count_orig + unit_count_new))
+
+      # 2ï¸âƒ£ Append TMP_UNIT before closing </units> with a tab for indentation
+      if grep -q '</units>' "$CONTENT_XML"; then
+        # create a temp file with indented units
+        TMP_UNIT_INDENT=$(mktemp)
+        sed 's/^/\t/' "$TMP_UNIT" > "$TMP_UNIT_INDENT"
+
+        # insert indented units before </units>
+        sed -i "/<\/units>/e cat $TMP_UNIT_INDENT" "$CONTENT_XML"
+
+        rm -f "$TMP_UNIT_INDENT"
+      else
+        # fallback: append at the end
+        sed -i -e "\$r $TMP_UNIT" "$CONTENT_XML"
+      fi
+      # 3ï¸âƒ£ Update <units size=""> attribute (handles single or double quotes)
+      if grep -q '<units ' "$CONTENT_XML"; then
+        sed -i -E "s/(<units[^>]*size=)['\"][0-9]+['\"]/\\1'${unit_count_total}'/" "$CONTENT_XML"
+        echo "?? Updated <units size=\"$unit_count_total\">"
+      else
+        echo "?? No <units> tag found â€” skipped size update."
+      fi
+
+      # 4ï¸âƒ£ Cleanup
+      rm -f "$TMP_UNIT"
+      echo "?? content.xml updated with ANTLR unit(s)."
+  - path: /opt/titan_designer/scripts/deploy_titan.sh
+    owner: multipass:multipass
+    permissions: '0777'
+    defer: true
+    content: |     
+      #!/usr/bin/env bash
+      set -Eeuo pipefail
+      trap 'echo "? Error at line $LINENO"; exit 1' ERR
+
+      # ---------------------------------------
+      # Configuration
+      # ---------------------------------------
+      ZIP_DIR="/opt/titan_designer/result/plugin"
+      DEST="/opt/eclipse-ide/eclipse/dropins/titan"
+      TMP="/tmp/titan_build"
+      MVN_BIN="/opt/apache-maven-3.9.11/bin/mvn"
+      SCRIPTS_DIR="/opt/titan_designer/scripts"
+      BUNDLED_DIR="${SCRIPTS_DIR}/bundled"
+      DESIGNER_JARS="/opt/titan_designer/jars/run"
+
+      # ---------------------------------------
+      # Find latest TITAN build zip
+      # ---------------------------------------
+      ZIP_FILE=$(ls -t "${ZIP_DIR}"/TITAN_on_Eclipse_*.zip 2>/dev/null | head -n1) || true
+      if [[ -z "${ZIP_FILE:-}" ]]; then
+        echo "? No TITAN_on_Eclipse_*.zip found in ${ZIP_DIR}"
+        exit 1
+      fi
+
+      echo "?? Using build: ${ZIP_FILE}"
+
+      # ---------------------------------------
+      # Prepare temp workspace
+      # ---------------------------------------
+      rm -rf "${TMP}"
+      mkdir -p "${TMP}"
+      unzip -q "${ZIP_FILE}" -d "${TMP}"
+      echo "?? Unzipped build to: ${TMP}"
+
+      # Extract existing metadata for merging
+      unzip -q "${TMP}/artifacts.jar" -d "${TMP}"
+      unzip -q "${TMP}/content.jar" -d "${TMP}"
+
+      # ---------------------------------------
+      # Build updated dependency bundles
+      # ---------------------------------------
+      echo "??  Building Maven bundles..."
+      cd "${SCRIPTS_DIR}"
+      "${MVN_BIN}" clean install
+      "${MVN_BIN}" -o clean package
+
+      # Copy newly built jars to bundled dir
+      cp "${SCRIPTS_DIR}/apache-poi-bundle/target/org.apache.poi-11.1.0.jar" "${BUNDLED_DIR}/org.apache.poi_11.1.0.jar"
+      cp "${SCRIPTS_DIR}/eclipse-collections-bundle/target/org.eclipse.collections-11.1.0.jar" "${BUNDLED_DIR}/org.eclipse.collections_11.1.0.jar"
+      cp "${SCRIPTS_DIR}/jung-bundle/target/edu.uci.ics.jung-11.1.0.jar" "${BUNDLED_DIR}/edu.uci.ics.jung_11.1.0.jar"
+      cp "${DESIGNER_JARS}/org.antlr.runtime_4.7.1.v20181120-0808.jar" "${BUNDLED_DIR}/org.antlr.runtime_4.7.1.v20181120-0808.jar"
+      cp "${DESIGNER_JARS}/com.google.guava_21.0.0.v20170206-1425.jar" "${BUNDLED_DIR}/com.google.guava_21.0.0.v20170206-1425.jar"
+
+      echo "? Bundled jars updated."
+
+      # ---------------------------------------
+      # Update content.xml
+      # ---------------------------------------
+      echo "?? Updating content.xml metadata..."
+      "${SCRIPTS_DIR}/eclipse_collections_content.sh" "${BUNDLED_DIR}" "${TMP}/content.xml"
+      "${SCRIPTS_DIR}/apache_poi_content.sh" "${BUNDLED_DIR}" "${TMP}/content.xml"
+      "${SCRIPTS_DIR}/jung_content.sh" "${BUNDLED_DIR}" "${TMP}/content.xml"
+      "${SCRIPTS_DIR}/guava_content.sh" "${BUNDLED_DIR}" "${TMP}/content.xml"
+      "${SCRIPTS_DIR}/antlr_content.sh" "${BUNDLED_DIR}" "${TMP}/content.xml"
+
+      # ---------------------------------------
+      # Update artifacts.xml
+      # ---------------------------------------
+      echo "?? Appending artifacts metadata..."
+      "${SCRIPTS_DIR}/artifacts.sh" "${BUNDLED_DIR}" "${TMP}/artifacts.xml"
+
+      # Copy bundled jars into extracted plugin
+      cp "${BUNDLED_DIR}"/*.jar "${TMP}/plugins/" 2>/dev/null || true
+
+      # ---------------------------------------
+      # Repack & Deploy
+      # ---------------------------------------
+      cd "${TMP}"
+      echo "?? Repacking updated plugin..."
+      zip -qr "${TMP}/artifacts.jar" artifacts.xml
+      zip -qr "${TMP}/content.jar" content.xml
+      zip -qr TITAN_complete.zip . >/dev/null
+      mv TITAN_complete.zip "${ZIP_DIR}/TITAN_complete_$(date +%Y%m%d).zip"
+
+      echo "?? Installing to Eclipse dropins..."
+      unzip -qo "${ZIP_DIR}/TITAN_complete_$(date +%Y%m%d).zip" -d "${DEST}"
+
+      echo "? TITAN plugin successfully enriched and installed to dropins."
 runcmd:
 # ====================================================================================================================================================
 #                          NETWORK
@@ -1404,20 +3008,19 @@ runcmd:
   - [ sh, -c, "systemctl daemon-reload" ]
   - [ sh, -c, "systemctl start gdm3 xrdp xrdp-rdc xrdp-sesman" ]
   - [ sh, -c, "systemctl set-default graphical.target" ]      
-  - [ sh, -c, "xhost +SI:localuser:root" ]
-  - [ sh, -c, "convert /usr/share/backgrounds/warty-final-ubuntu.png -resize 1920x1080! -gravity center -extent 1920x1080 -type TrueColor -depth 24 /usr/share/xrdp/warty-final-ubuntu.bmp" ]                  
-  - [ sh, -c, "convert -size 1x1 xc:none -define bmp:format=bmp3 /usr/share/xrdp/transparent.bmp" ]            
+  - [ sh, -c, "convert /usr/share/backgrounds/warty-final-ubuntu.png -resize 1920x1080! -gravity center -extent 1920x1080 -type TrueColor -depth 24 /usr/share/xrdp/warty-final-ubuntu.bmp" ]      
+  - [ sh, -c, "convert -size 1x1 xc:none -define bmp:format=bmp3 /usr/share/xrdp/transparent.bmp" ]          
 # ====================================================================================================================================================
-#                          ECLIPSE / TITAN DESIGNER
+#                          ECLIPSE IDE
 # ====================================================================================================================================================
   - [ sh, -c, "sudo chown -R multipass:multipass /home/multipass" ]  
   - [ sh, -c, 'wget -4 -O /home/multipass/eclipse.tar.gz "https://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2025-09/R/eclipse-jee-2025-09-R-linux-gtk-x86_64.tar.gz"' ]
-  - [ sh, -c, 'wget -4 -O /home/multipass/TITAN.zip "https://mirror.dotsrc.org/mirrors/pub/eclipse/titan/TITAN_Designer_and_Executor_plugin-11.1.0.zip"' ]
-  - [ sh, -c, "sudo tar -xf /home/multipass/eclipse.tar.gz -C /opt/" ]
-  - [ sh, -c, "sudo chown -R multipass:multipass /opt/eclipse" ]
-  - [ sh, -c, "sudo ln -s /opt/eclipse/eclipse /usr/local/bin/eclipse" ]
-  - [ sh, -c, "sudo -u multipass bash -c 'mkdir -p /opt/eclipse/dropins/titan'" ]
-  - [ sh, -c, "sudo -u multipass bash -c 'unzip -o /home/multipass/TITAN.zip -d /opt/eclipse/dropins/titan'" ]
+#  - [ sh, -c, 'wget -4 -O /home/multipass/eclipse.tar.gz "https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2025-09/R/eclipse-jee-2025-09-R-linux-gtk-x86_64.tar.gz&r=1"' ]
+  - [ sh, -c, "mkdir -p /opt/eclipse-ide" ]   
+  - [ sh, -c, "sudo tar -xf /home/multipass/eclipse.tar.gz -C /opt/eclipse-ide" ]
+  - [ sh, -c, "sudo chown -R multipass:multipass /opt/eclipse-ide" ]
+  - [ sh, -c, "sudo ln -s /opt/eclipse/eclipse-ide /usr/local/bin/eclipse-ide" ]
+  - [ sh, -c, "sudo -u multipass bash -c 'mkdir -p /opt/eclipse-ide/eclipse/dropins/titan'" ]
   - [ sh, -c, "sudo -u multipass bash -c 'sudo chmod +x /home/multipass/Desktop/eclipse.desktop'" ]
   - [ sh, -c, "sudo -u multipass bash -c 'chown multipass:multipass /home/multipass/Desktop/eclipse.desktop'" ]  
   - [ sh, -c, "sudo -u multipass bash -c 'mkdir -p /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings'" ]
@@ -1425,31 +3028,10 @@ runcmd:
   - [ sh, -c, "sudo -u multipass bash -c 'cp /home/multipass/*.launch /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.debug.core/.launches'" ]
   - [ sh, -c, "sudo -u multipass bash -c 'cp /home/multipass/org.eclipse.titan.designer.prefs /home/multipass/eclipse-workspace/.metadata/.plugins/org.eclipse.core.runtime/.settings'" ]  
   - [ sh, -c, "mkdir /opt/eclipse-backup" ]   
-  - [ sh, -c, "chown multipass:multipass /opt/eclipse-backup" ]    
+  - [ sh, -c, "chown multipass:multipass /opt/eclipse-backup" ]
   - [ sh, -c, "sudo mv /home/multipass/eclipse.tar.gz /opt/eclipse-backup" ] 
-  - [ sh, -c, "sudo mv /home/multipass/TITAN.zip /opt/eclipse-backup" ]  
   - [ sh, -c, "sudo mv /home/multipass/*.launch /opt/eclipse-backup" ]  
-  - [ sh, -c, "sudo mv /home/multipass/org.eclipse.titan.designer.prefs /opt/eclipse-backup" ]    
-  - [ sh, -c, "sudo -u multipass bash -c 'eclipse -nosplash -data /home/multipass/eclipse-workspace -initialize'" ]      
-# ====================================================================================================================================================
-#                          FIREFOX
-# ====================================================================================================================================================
-  - [ sh, -c, 'echo "deb http://ppa.launchpad.net/mozillateam/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/mozillateam-ppa.list' ]
-  - [ sh, -c, "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0x0ab215679c571d1c8325275b9bdb3d89ce49ec21" ]
-  - [ sh, -c, "apt update" ]
-  - [ sh, -c, "apt install -y firefox-esr" ]
-# ====================================================================================================================================================
-#                          CHROME
-# ====================================================================================================================================================
-  - [ sh, -c, "mkdir -p /etc/apt/keyrings" ]
-  - [ sh, -c, "curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg" ]
-  - [ sh, -c, 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list' ]
-  - [ sh, -c, "apt update" ]
-  - [ sh, -c, "apt install -y google-chrome-stable" ]
-# ====================================================================================================================================================
-#                          JAVA
-# ====================================================================================================================================================
-#  - [ sh, -c, "/etc/profile.d/java.sh" ]  
+  - [ sh, -c, "sudo mv /home/multipass/org.eclipse.titan.designer.prefs /opt/eclipse-backup" ]
   - [ sh, -c, "wget -4 -qO- https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg" ]
   - [ sh, -c, 'echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/adoptium.list' ]
   - [ sh, -c, "apt-get update" ]
@@ -1458,16 +3040,6 @@ runcmd:
   - [ sh, -c, "tar -xf /home/multipass/maven.tar.gz -C /opt/" ]
   - [ sh, -c, "chown -R multipass:multipass /opt/apache-maven-3.9.11" ]  
   - [ sh, -c, "sudo rm -f /home/multipass/maven.tar.gz" ]
-# ====================================================================================================================================================
-#                          VISUAL CODE
-# ====================================================================================================================================================
-  - [ sh, -c, "sudo snap install code --classic"]
-# ====================================================================================================================================================
-#                          FASTFETCH
-# ====================================================================================================================================================
-  - [ sh, -c, 'wget -4 -O /home/multipass/fastfetch-linux-amd64.deb "https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb"' ]
-  - [ sh, -c, "apt-get install -y /home/multipass/fastfetch-linux-amd64.deb" ]
-  - [ sh, -c, "rm -f /home/multipass/fastfetch-linux-amd64.deb"]  
 # ====================================================================================================================================================
 #                          BUILD TITAN FROM SOURCE  
 # ====================================================================================================================================================
@@ -1481,46 +3053,121 @@ runcmd:
 #                          BUILD TITAN DESIGNER FROM SOURCE 
 #   https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins/-/blob/master/README?ref_type=heads
 # ====================================================================================================================================================
-  - [ sh, -c, "git clone https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins /opt/titan.EclipsePlug-ins" ]
+  - [ sh, -c, "git clone https://gitlab.eclipse.org/eclipse/titan/titan.EclipsePlug-ins.git /opt/titan.EclipsePlug-ins" ]
   - [ sh, -c, "chown -R multipass:multipass /opt/titan.EclipsePlug-ins" ]
   - [ sh, -c, "sudo -u multipass bash -c 'cd /opt/titan.EclipsePlug-ins && git fetch && git pull && git checkout -b v_11.1.0 11.1.0'" ]
-  - [ sh, -c, "sed -i 's|JAVA_HOME_11|JAVA_HOME_21|' /etc/profile.d/java.sh" ]
-  - [ sh, -c, "source /etc/profile.d/java.sh" ]
-  - [ sh, -c, "source /etc/profile.d/titan-designer-env.sh" ]
-  - [ sh, -c, "mkdir -p /opt/titan_designer/jars /opt/titan_designer/result" ]
-  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/antlr-4.7.1-complete.jar https://www.antlr.org/download/antlr-4.7.1-complete.jar" ]
-  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/junit-4.11.jar https://search.maven.org/remotecontent?filepath=junit/junit/4.11/junit-4.11.jar" ]
-  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/guava-21.0.jar https://repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar" ]
-  - [ sh, -c, "for jar in jung-graph-impl jung-visualization jung-algorithms jung-io; do wget -4 -O /opt/titan_designer/jars/\${jar}-2.1.1.jar https://repo1.maven.org/maven2/net/sf/jung/\${jar}/2.1.1/\${jar}-2.1.1.jar; done" ]
-  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/eclipse-collections-api-11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections-api/11.1.0/eclipse-collections-api-11.1.0.jar" ]
-  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/eclipse-collections-11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections/11.1.0/eclipse-collections-11.1.0.jar" ]
-  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/poi-3.9.jar https://repo1.maven.org/maven2/org/apache/poi/poi/3.9/poi-3.9.jar" ]
-  - [ sh, -c, "chown -R multipass:multipass /opt/titan_designer" ]
-  - [ sh, -c, "wget -4 -O /home/multipass/eclipse-committers.tar.gz https://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2025-09/R/eclipse-committers-2025-09-R-linux-gtk-x86_64.tar.gz" ]
-  - [ sh, -c, "tar -xzf /home/multipass/eclipse-committers.tar.gz -C /opt/" ]
-  - [ sh, -c, "chown -R multipass:multipass /opt/eclipse-committers" ]
-  - [ sh, -c, "sudo mv /home/multipass/eclipse-committers.tar.gz /opt/eclipse-backup" ] 
-  - [ sh, -c, "mkdir -p /home/multipass/eclipse-committers-workspace" ]
-  - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-committers-workspace" ]
-  - [ sh, -c, "mv /opt/titan_designer/jars/eclipse-collections-* /opt/eclipse-committers/plugins/" ]
-  - [ sh, -c, "cd /opt/titan.EclipsePlug-ins/automatic_build && \
-      ant -f build_main.xml \
-      -DJAVA_HOME=$JAVA_HOME_21 \
-      -DECLIPSE_HOME=$ECLIPSE_COMMITTERS_HOME \
-      -Dcompiler.location=$COMPILER_LOCATION \
-      -Dantlr4.jar.location=$ANTLR4_JAR \
-      -lib $JUNG_GRAPH_JAR \
-      -lib $JUNG_VIS_JAR \
-      -lib $JUNG_ALG_JAR \
-      -lib $JUNG_IO_JAR \
-      -lib $GUAVA_JAR \
-      -lib $APACHE_POI_JAR \
-      -lib $JUNIT_JAR \
-      -Dupdatesite.release.location=$TITAN_DESIGNER_RESULT/update_site \
-      -Dupdatesite.FOA.location=$TITAN_DESIGNER_RESULT/FOA_update_site \
-      -Dupdatesite.experimental.location=$TITAN_DESIGNER_RESULT/experimental_update_site \
-      -Dupdatesite.testing.location=$TITAN_DESIGNER_RESULT/testing_update_site \
-      -Dupdatesites.tmp.location=$TITAN_DESIGNER_RESULT/eclipse_automatic_build/tmp_update_sites \
-      -Dzip.dir=$TITAN_DESIGNER_RESULT/plugin/ zip" ]
-  - [ sh, -c, "sed -i 's|JAVA_HOME_21|JAVA_HOME_11|' /etc/profile.d/java.sh" ]
-  - [ sh, -c, "source /etc/profile.d/java.sh" ]
+  - [ sh, -c, "mkdir -p /opt/titan_designer/jars/build /opt/titan_designer/jars/run /opt/titan_designer/jars/legacy/ " ]
+  - [ sh, -c, "mkdir -p /opt/titan_designer/jars/legacy/edu.uci.ics.jung/ /opt/titan_designer/result " ]
+  - [ sh, -c, "mkdir -p /opt/eclipse-committers /home/multipass/eclipse-committers-workspace /opt/eclipse-backup /opt/titan_designer/titan_web/" ]
+  - [ sh, -c, "mkdir -p /opt/titan_designer/jars/legacy/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.9.v20251105-0741" ]
+  - [ sh, -c, "mkdir -p /opt/titan_designer/scripts/bundled /opt/titan_designer/result/plugin/" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/antlr-4.7.1-complete.jar https://www.antlr.org/download/antlr-4.7.1-complete.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/junit-4.11.jar https://search.maven.org/remotecontent?filepath=junit/junit/4.11/junit-4.11.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/guava-21.0.jar https://repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/jung-api-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-api/2.1/jung-api-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/jung-graph-impl-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-graph-impl/2.1/jung-graph-impl-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/jung-algorithms-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-algorithms/2.1/jung-algorithms-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/jung-visualization-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-visualization/2.1/jung-visualization-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/jung-io-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-io/2.1/jung-io-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/eclipse-collections-api-11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections-api/11.1.0/eclipse-collections-api-11.1.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/eclipse-collections_11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections/11.1.0/eclipse-collections-11.1.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/build/poi-3.9.jar https://repo1.maven.org/maven2/org/apache/poi/poi/3.9/poi-3.9.jar" ]
+  - [ sh, -c, "echo ' Downloading runtime jars...'" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.eclipse.tm4e.ui_0.15.0.202506111431.jar https://download.eclipse.org/tm4e/releases/0.15.0/plugins/org.eclipse.tm4e.ui_0.15.0.202506111431.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.eclipse.tm4e.core_0.15.0.202506111431.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.eclipse.tm4e.core_0.15.0.202506111431.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.eclipse.tm4e.language_pack_0.15.0.202506111431.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.eclipse.tm4e.language_pack_0.15.0.202506111431.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.eclipse.tm4e.languageconfiguration_0.15.0.202506111431.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.eclipse.tm4e.languageconfiguration_0.15.0.202506111431.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.eclipse.tm4e.registry_0.15.0.202506111431.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.eclipse.tm4e.registry_0.15.0.202506111431.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.eclipse.tm4e.markdown_0.15.0.202506111431.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.eclipse.tm4e.markdown_0.15.0.202506111431.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.jcodings_1.0.63.v20250307-1000.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.jcodings_1.0.63.v20250307-1000.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.joni_2.2.6.v20250329-1000.jar https://mirrors.xmission.com/eclipse/tm4e/releases/0.15.0/plugins/org.joni_2.2.6.v20250329-1000.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/com.evolvedbinary.thirdparty.org.apache.xmlrpc.xmlrpc-client_5.0.0.jar https://repo1.maven.org/maven2/com/evolvedbinary/thirdparty/org/apache/xmlrpc/xmlrpc-client/5.0.0/xmlrpc-client-5.0.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/com.google.javascript_0.0.20250407.v20250416-1000.jar https://download.eclipse.org/tools/orbit/simrel/maven-bnd/release/4.36.0/plugins/com.google.javascript_0.0.20250407.v20250416-1000.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/commonmark.ext-gfm-tables_0.25.1.jar https://repo1.maven.org/maven2/org/commonmark/commonmark-ext-gfm-tables/0.25.1/commonmark-ext-gfm-tables-0.25.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/eclipse-collections_11.0.0.v20211123-1459.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections/11.0.0/eclipse-collections-11.0.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/org.antlr.runtime_4.7.1.v20181120-0808.jar https://download.eclipse.org/tools/orbit/downloads/drops2/R20210602031627/repository/plugins/org.antlr.runtime_4.7.1.v20181120-0808.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/run/com.google.guava_21.0.0.v20170206-1425.jar https://www.eclipse.org/downloads/download.php?file=/tools/orbit/downloads/drops2/R20180330011457/repository/plugins/com.google.guava_21.0.0.v20170206-1425.jar"]
+  - [ sh, -c, "unzip -o /opt/titan_designer/jars/run/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.9.v20251105-0741.jar -d /opt/titan_designer/jars/run/org.eclipse.justj.openjdk.hotspot.jre.full.linux.x86_64_21.0.9.v20251105-0741" ]
+  - [ sh, -c, "echo ' Jars to be bundled...'" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/org.antlr.runtime_4.7.2.jar https://repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.7.2/antlr4-runtime-4.7.2.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/org.antlr.runtime_4.7.1.jar https://repo1.maven.org/maven2/org/antlr/antlr4-runtime/4.7.1/antlr4-runtime-4.7.1.jarr" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/com.google.guava_21.0.0.jar https://repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/org.apache.poi_3.9.0.jar https://repo1.maven.org/maven2/org/apache/poi/poi/3.9/poi-3.9.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/eclipse-collections_11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections/11.1.0/eclipse-collections-11.1.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/eclipse-collections-api-11.1.0.jar https://repo1.maven.org/maven2/org/eclipse/collections/eclipse-collections-api/11.1.0/eclipse-collections-api-11.1.0.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/jung-api-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-api/2.1/jung-api-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/jung-graph-impl-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-graph-impl/2.1/jung-graph-impl-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/jung-algorithms-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-algorithms/2.1/jung-algorithms-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/jung-visualization-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-visualization/2.1/jung-visualization-2.1.jar" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/jars/legacy/jung-io-2.1.jar https://repo1.maven.org/maven2/net/sf/jung/jung-io/2.1/jung-io-2.1.jar" ]
+  - [ sh, -c, "echo ' TITAN DESIGNER FROM WEB...'" ]
+  - [ sh, -c, "wget -4 -O /opt/titan_designer/titan_web/TITAN.zip https://mirror.dotsrc.org/mirrors/pub/eclipse/titan/TITAN_Designer_and_Executor_plugin-11.1.0.zip" ]
+  - [ sh, -c, "echo ' Downloading Eclipse Committers package...'" ]   
+  - [ sh, -c, "wget -4 -O /home/multipass/eclipse-committers.tar.gz 'https://www.mirrorservice.org/sites/download.eclipse.org/eclipseMirror/technology/epp/downloads/release/2025-09/R/eclipse-committers-2025-09-R-linux-gtk-x86_64.tar.gz'" ]
+ # - [ sh, -c, "wget -4 -O /home/multipass/eclipse-committers.tar.gz 'https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2025-09/R/eclipse-committers-2025-09-R-linux-gtk-x86_64.tar.gz&r=1'" ]
+  - [ sh, -c, "tar -xf /home/multipass/eclipse-committers.tar.gz -C /opt/eclipse-committers" ]
+  - [ sh, -c, "mv /home/multipass/eclipse-committers.tar.gz /opt/eclipse-backup/" ]
+  - [ sh, -c, "cp /opt/titan_designer/jars/build/eclipse-collections* /opt/eclipse-committers/eclipse/plugins/" ]
+  - [ sh, -c, "cp /opt/titan_designer/jars/build/jung* /opt/eclipse-committers/eclipse/plugins/" ]
+  - [ sh, -c, "cp /opt/titan_designer/jars/build/poi* /opt/eclipse-committers/eclipse/plugins/" ]
+  - [ sh, -c, "cp /opt/titan_designer/jars/build/junit* /opt/eclipse-committers/eclipse/plugins/" ]
+  - [ sh, -c, "cp /opt/titan_designer/jars/build/guava* /opt/eclipse-committers/eclipse/plugins/" ]
+  - [ sh, -c, "cp /opt/titan_designer/jars/build/antlr* /opt/eclipse-committers/eclipse/plugins/" ]
+  - [ bash, -c, "
+    set -eux && \
+    echo '  Building TITAN Designer...' && \
+    export DESIGNER_JARS=/opt/titan_designer/jars/build && \
+    export JAVA_HOME_21=/usr/lib/jvm/java-21-temurin-amd64 && \
+    export PATH=$JAVA_HOME_21/bin:$PATH && \
+    export TITAN_DESIGNER_RESULT=/opt/titan_designer/result && \
+    cd /opt/titan.EclipsePlug-ins/automatic_build && \
+    ant -f build_main.xml \
+      -DJAVA_HOME=${JAVA_HOME_21} \
+      -DECLIPSE_HOME=/opt/eclipse-committers/eclipse \
+      -Dcompiler.location=/opt/titan.core \
+      -Dantlr4.jar.location=/opt/titan_designer/jars/build/antlr-4.7.1-complete.jar \
+      -lib ${DESIGNER_JARS}/jung-graph-impl-2.1.jar \
+      -lib ${DESIGNER_JARS}/jung-visualization-2.1.jar \
+      -lib ${DESIGNER_JARS}/jung-algorithms-2.1.jar \
+      -lib ${DESIGNER_JARS}/jung-io-2.1.jar \
+      -lib ${DESIGNER_JARS}/guava-21.0.jar \
+      -lib ${DESIGNER_JARS}/poi-3.9.jar \
+      -lib ${DESIGNER_JARS}/junit-4.11.jar \
+      -Dupdatesite.release.location=${TITAN_DESIGNER_RESULT}/update_site \
+      -Dupdatesite.FOA.location=${TITAN_DESIGNER_RESULT}/FOA_update_site \
+      -Dupdatesite.experimental.location=${TITAN_DESIGNER_RESULT}/experimental_update_site \
+      -Dupdatesite.testing.location=${TITAN_DESIGNER_RESULT}/testing_update_site \
+      -Dupdatesites.tmp.location=${TITAN_DESIGNER_RESULT}/eclipse_automatic_build/tmp_update_sites \
+      -Dzip.dir=${TITAN_DESIGNER_RESULT}/plugin/ zip " ]
+  - [ sh, -c, "/opt/titan_designer/scripts/deploy_titan.sh" ]   
+  - [ sh, -c, "chown -R multipass:multipass /opt/titan_designer/" ]     
+  - [ sh, -c, "chown -R multipass:multipass /opt/eclipse-committers/" ]     
+  - [ sh, -c, "chown -R multipass:multipass /opt/eclipse-ide/" ]   
+  - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-workspace" ] 
+  - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-committers-workspace" ] 
+  - [ sh, -c, "sudo -u multipass bash -c '/opt/eclipse-ide/eclipse/eclipse -nosplash -data /home/multipass/eclipse-workspace -clean -initialize'" ]
+# ====================================================================================================================================================
+#                         FIREFOX
+# ====================================================================================================================================================
+  - [ sh, -c, 'echo "deb http://ppa.launchpad.net/mozillateam/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/mozillateam-ppa.list' ]
+  - [ sh, -c, "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0x0ab215679c571d1c8325275b9bdb3d89ce49ec21" ]
+  - [ sh, -c, "apt update" ]
+  - [ sh, -c, "apt install -y firefox-esr" ]
+# ====================================================================================================================================================
+#                          CHROME
+# ====================================================================================================================================================
+  - [ sh, -c, "mkdir -p /etc/apt/keyrings" ]
+  - [ sh, -c, "curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg" ]
+  - [ sh, -c, 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list' ]
+  - [ sh, -c, "apt update" ]
+  - [ sh, -c, "apt install -y google-chrome-stable" ]   
+# ====================================================================================================================================================
+#                          VISUAL CODE
+# ====================================================================================================================================================
+  - [ sh, -c, "sudo snap install code --classic"]
+# ====================================================================================================================================================
+#                          FASTFETCH
+# ====================================================================================================================================================
+  - [ sh, -c, 'wget -4 -O /home/multipass/fastfetch-linux-amd64.deb "https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb"' ]
+  - [ sh, -c, "apt-get install -y /home/multipass/fastfetch-linux-amd64.deb" ]
+  - [ sh, -c, "rm -f /home/multipass/fastfetch-linux-amd64.deb"] 

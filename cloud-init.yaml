@@ -608,7 +608,7 @@ write_files:
       export PROMPT_COMMAND='history -a; history -n'
       shopt -s histappend
       export HISTFILESIZE=50000
-      export HISTSIZE=50000                 
+      export HISTSIZE=50000                  
 # ====================================================================================================================================================
 #          {USER_INPUT} Enable 99-hyperv-multipass.yaml or 100-vbox-multipass.yaml based on virtual adapter
 #=====================================================================================================================================================            

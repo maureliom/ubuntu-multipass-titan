@@ -7,7 +7,7 @@ This is a cloud-init template that provision a remote workstation configured for
                           UBUNTU WORKSTATION ENVIRONMENT SETUP FOR DEVELOPMENT 
  --------------------------------------------------------------------------------------------------------------------------------
   Author:          Marco Aurelio Micheletto
-
+                   maureliom@hotmail.com
   Created:         October 2025
   Version:         1.0
 

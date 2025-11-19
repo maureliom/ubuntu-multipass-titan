@@ -603,7 +603,12 @@ write_files:
           else
               PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
           fi
-      fi      
+      fi  
+      # Always save commands to history instantly
+      export PROMPT_COMMAND='history -a; history -n'
+      shopt -s histappend
+      export HISTFILESIZE=50000
+      export HISTSIZE=50000                 
 # ====================================================================================================================================================
 #          {USER_INPUT} Enable 99-hyperv-multipass.yaml or 100-vbox-multipass.yaml based on virtual adapter
 #=====================================================================================================================================================            
@@ -3146,21 +3151,32 @@ runcmd:
   - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-workspace" ] 
   - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-committers-workspace" ] 
   - [ sh, -c, "sudo -u multipass bash -c '/opt/eclipse-ide/eclipse/eclipse -nosplash -data /home/multipass/eclipse-workspace -clean -initialize'" ]
-# ====================================================================================================================================================
-#                         FIREFOX
-# ====================================================================================================================================================
-  - [ sh, -c, 'echo "deb http://ppa.launchpad.net/mozillateam/ppa/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/mozillateam-ppa.list' ]
-  - [ sh, -c, "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0x0ab215679c571d1c8325275b9bdb3d89ce49ec21" ]
-  - [ sh, -c, "apt update" ]
-  - [ sh, -c, "apt install -y firefox-esr" ]
-# ====================================================================================================================================================
-#                          CHROME
-# ====================================================================================================================================================
-  - [ sh, -c, "mkdir -p /etc/apt/keyrings" ]
+# =====================================================================
+# Base dependencies for adding APT repositories
+# =====================================================================
+  - [ sh, -c, "apt-get update && apt-get install -y ca-certificates curl gnupg" ]
+  - [ sh, -c, "install -m 0755 -d /etc/apt/keyrings" ]
+
+# =====================================================================
+# Firefox ESR (MozillaTeam PPA)
+# =====================================================================
+  - [ sh, -c, "curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0ab215679c571d1c8325275b9bdb3d89ce49ec21' | gpg --dearmor -o /etc/apt/keyrings/mozillateam.gpg" ]
+  - [ sh, -c, "chmod a+r /etc/apt/keyrings/mozillateam.gpg" ]
+  - [ sh, -c, 'echo \"deb [signed-by=/etc/apt/keyrings/mozillateam.gpg] http://ppa.launchpad.net/mozillateam/ppa/ubuntu $(lsb_release -cs) main\" | tee /etc/apt/sources.list.d/mozillateam-ppa.list' ]
+
+# =====================================================================
+# Google Chrome
+# =====================================================================
   - [ sh, -c, "curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg" ]
-  - [ sh, -c, 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list' ]
-  - [ sh, -c, "apt update" ]
-  - [ sh, -c, "apt install -y google-chrome-stable" ]   
+  - [ sh, -c, "chmod a+r /etc/apt/keyrings/google-chrome.gpg" ]
+  - [ sh, -c, 'echo \"deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main\" | tee /etc/apt/sources.list.d/google-chrome.list' ]
+
+# =====================================================================
+# Install browsers
+# =====================================================================
+  - [ sh, -c, "apt-get update" ]
+  - [ sh, -c, "apt-get install -y firefox-esr google-chrome-stable" ]
+
 # ====================================================================================================================================================
 #                          VISUAL CODE
 # ====================================================================================================================================================

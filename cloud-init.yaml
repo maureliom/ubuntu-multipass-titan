@@ -518,15 +518,15 @@ packages:
 #  - |
 #    -----BEGIN CERTIFICATE-----
 #   -----END CERTIFICATE-----
-ca_certs:
-  remove_defaults: false
-  trusted:  
-  - 
-    -----BEGIN CERTIFICATE-----
-    -----END CERTIFICATE-----
-  - |
-    -----BEGIN CERTIFICATE-----
-    -----END CERTIFICATE-----
+#ca_certs:
+#  remove_defaults: false
+#  trusted:  
+#  - 
+#    -----BEGIN CERTIFICATE-----
+#    -----END CERTIFICATE-----
+#  - |
+#    -----BEGIN CERTIFICATE-----
+#    -----END CERTIFICATE-----
 write_files:
 # ====================================================================================================================================================
 #                          github/gitlab credentials (PASSWORD = personal token)
@@ -1029,6 +1029,7 @@ write_files:
       #startxfce4
       #===============================================================================================================================================
       #                        LAUNCH GNOME
+      /home/multipass/.config/autostart/desktop-tweaks.sh
       exec gnome-session --session=ubuntu
       /home/multipass/.config/autostart/desktop-tweaks.sh
       # ==============================================================================================================================================
@@ -3151,32 +3152,37 @@ runcmd:
   - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-workspace" ] 
   - [ sh, -c, "chown -R multipass:multipass /home/multipass/eclipse-committers-workspace" ] 
   - [ sh, -c, "sudo -u multipass bash -c '/opt/eclipse-ide/eclipse/eclipse -nosplash -data /home/multipass/eclipse-workspace -clean -initialize'" ]
-# =====================================================================
-# Base dependencies for adding APT repositories
-# =====================================================================
-  - [ sh, -c, "apt-get update && apt-get install -y ca-certificates curl gnupg" ]
-  - [ sh, -c, "install -m 0755 -d /etc/apt/keyrings" ]
+ # Reinstall CA certificates and refresh
+  - [ sh, -c, "apt-get install --reinstall -y ca-certificates" ] 
+  - [ sh, -c, "update-ca-certificates --fresh" ] 
+  # Create keyrings directory
+  - [ sh, -c, "mkdir -p /etc/apt/keyrings" ]
 
-# =====================================================================
-# Firefox ESR (MozillaTeam PPA)
-# =====================================================================
-  - [ sh, -c, "curl -fsSL 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x0ab215679c571d1c8325275b9bdb3d89ce49ec21' | gpg --dearmor -o /etc/apt/keyrings/mozillateam.gpg" ]
-  - [ sh, -c, "chmod a+r /etc/apt/keyrings/mozillateam.gpg" ]
-  - [ sh, -c, 'echo \"deb [signed-by=/etc/apt/keyrings/mozillateam.gpg] http://ppa.launchpad.net/mozillateam/ppa/ubuntu $(lsb_release -cs) main\" | tee /etc/apt/sources.list.d/mozillateam-ppa.list' ]
-
-# =====================================================================
-# Google Chrome
-# =====================================================================
+  # Add Google Chrome key and repository
   - [ sh, -c, "curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg" ]
   - [ sh, -c, "chmod a+r /etc/apt/keyrings/google-chrome.gpg" ]
-  - [ sh, -c, 'echo \"deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main\" | tee /etc/apt/sources.list.d/google-chrome.list' ]
+  - [ sh, -c, "echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb stable main' > /etc/apt/sources.list.d/google-chrome.list" ]
 
-# =====================================================================
-# Install browsers
-# =====================================================================
-  - [ sh, -c, "apt-get update" ]
-  - [ sh, -c, "apt-get install -y firefox-esr google-chrome-stable" ]
+  # Add Adoptium repo and key
+  - [ sh, -c, "curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /etc/apt/keyrings/adoptium.gpg" ]
+  - [ sh, -c, "chmod a+r /etc/apt/keyrings/adoptium.gpg" ]
+  - [ sh, -c, "echo 'deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(lsb_release -sc) main' > /etc/apt/sources.list.d/adoptium.list" ]
 
+  # Disable broken Mozilla PPA (avoid 404 errors)
+  - [ sh, -c, "if [ -f /etc/apt/sources.list.d/mozillateam-ppa.list ]; then mv /etc/apt/sources.list.d/mozillateam-ppa.list /etc/apt/sources.list.d/mozillateam-ppa.list.bak; fi" ]
+
+  # Update package lists
+  - [ sh, -c, "apt-get update -y" ]
+
+  # Install Google Chrome
+  - [ sh, -c, "apt-get install -y google-chrome-stable" ]
+  # =====================================================================
+  # Firefox via Snap (latest ESR/standard release)
+  # =====================================================================
+  - [ sh, -c, "add-apt-repository -y ppa:mozillateam/ppa" ]
+  - [ sh, -c, "printf 'Package: *\nPin: release o=LP-PPA-mozillateam\nPin-Priority: 1001\n' > /etc/apt/preferences.d/mozilla-firefox" ]
+  - [ sh, -c, "apt-get update -y" ]
+  - [ sh, -c, "apt-get install -y firefox-esr" ]
 # ====================================================================================================================================================
 #                          VISUAL CODE
 # ====================================================================================================================================================
